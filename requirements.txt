@@ -1,0 +1,16 @@
+asgiref==3.6.0
+backports.zoneinfo==0.2.1
+cffi==1.15.1
+channels==4.0.0
+coverage==7.1.0
+cryptography==39.0.0
+Django==4.1.6
+django-filter==22.1
+django-rest-knox==4.2.0
+djangorestframework==3.14.0
+importlib-metadata==6.0.0
+Markdown==3.4.1
+pycparser==2.21
+pytz==2022.7.1
+sqlparse==0.4.3
+zipp==3.12.0

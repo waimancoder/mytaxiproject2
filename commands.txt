@@ -1,0 +1,11 @@
+#build images
+docker build --tag python-django .     
+
+docker run --publish 8000:8000 python-django   
+
+
+#### DOCKER-COMPOSE #######
+
+docker-compose build // to build the image
+docker-compose run app //to run the service
+docker-compose up //to run the docker container 
