@@ -1,9 +1,15 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import get_user_model, authenticate, update_session_auth_hash
 from django.utils.translation import gettext_lazy as _
 from .models import User, StudentID
 from django.shortcuts import get_list_or_404, get_object_or_404
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.contrib.auth.tokens import default_token_generator as auth_token_generator
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
+from rest_framework.authtoken.models import Token
+from django.core.exceptions import ValidationError
 
 
 
@@ -91,3 +97,29 @@ class StudentIDVerificationSerializer(serializers.ModelSerializer):
 class VerifyEmailSerializer(serializers.Serializer):
     uidb64 = serializers.CharField(required=True)
     token = serializers.CharField(required=True)
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password1 = serializers.CharField(required=True)
+    new_password2 = serializers.CharField(required=True)
+
+    def validate(self, data):
+        try:
+            uid = force_str(urlsafe_base64_decode(data['uid']))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            raise ValidationError({'error': 'User not found'})
+
+        if not auth_token_generator.check_token(user, data['token']):
+            raise ValidationError({'error': 'Invalid token'})
+
+        password_reset_form = SetPasswordForm(user, data)
+        if not password_reset_form.is_valid():
+            raise ValidationError(password_reset_form.errors)
+
+        return data

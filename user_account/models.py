@@ -8,7 +8,7 @@ from datetime import date
 class User(AbstractUser):
     username = models.CharField(max_length = 50, blank = True, null = True, unique = True)
     email = models.EmailField(_('email address'), unique = True)
-    native_name = models.CharField(max_length = 5)
+    native_name = models.CharField(max_length=125)
     phone_no = models.CharField(max_length = 12)
     isVerified = models.BooleanField(default=False)
     USERNAME_FIELD = 'email'
