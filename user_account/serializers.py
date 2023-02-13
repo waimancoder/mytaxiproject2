@@ -15,22 +15,28 @@ from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
+class StudentIDNumberField(serializers.Field):
+
+    def to_representation(self, obj):
+        try:
+            student_id = obj.studentid
+            return student_id.id_number
+        except StudentID.DoesNotExist:
+            return None
+
 class UserSerializer(serializers.ModelSerializer):
+    id_number = StudentIDNumberField(source='*', read_only=True)
+
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'native_name','phone_no','role','isVerified']
+        fields = ['id', 'email', 'native_name', 'phone_no', 'role', 'isVerified','id_number']
 
-    # def create(self, validated_data):
-    #     role = validated_data.pop('role')
-    #     user = User.objects.create(**validated_data)
-    #     if role == 'student':
-    #         student_data = validated_data.pop('student')
-    #         Student.objects.create(user=user, **student_data)
-    #     else:
-    #         staff_data = validated_data.pop('staff')
-    #         Staff.objects.create(user=user, **staff_data)
-    #     return user
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data['role'] != 'student':
+            data.pop('id_number')
+        return data
 
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(

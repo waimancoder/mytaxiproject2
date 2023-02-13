@@ -1,36 +1,35 @@
 from django.db import models
 import uuid
+from user_account.models import User
 
+
+class Driver(models.Model):
+    user = models.OneToOneField(to=User, on_delete=models.CASCADE)
+    car_make = models.CharField(max_length=128)
+    car_model = models.CharField(max_length=128)
+    car_registration_number = models.CharField(max_length=128)
+    driver_license = models.CharField(max_length=128)
+    
+    def __str__(self):
+        return f'{self.user.username} ({self.car_make} {self.car_model})'
 
 class Trip(models.Model):
-    REQUESTED = 'REQUESTED'
-    STARTED = 'STARTED'
-    IN_PROGRESS = 'IN_PROGRESS'
-    COMPLETED = 'COMPLETED'
-    STATUSES = (
-        (REQUESTED, REQUESTED),
-        (STARTED, STARTED),
-        (IN_PROGRESS, IN_PROGRESS),
-        (COMPLETED, COMPLETED),
-    )
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-    pick_up_address = models.CharField(max_length=255)
-    drop_off_address = models.CharField(max_length=255)
-    status = models.CharField(max_length=20, choices=STATUSES, default=REQUESTED)
+    origin = models.CharField(max_length=256)
+    destination = models.CharField(max_length=256)
+    driver = models.ForeignKey(to=Driver, on_delete=models.CASCADE, related_name='trips')
+    passengers = models.ManyToManyField(to=User, blank=True, related_name='rides')
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
 
     def __str__(self):
-        return f'{self.id}'
+        return f'{self.driver.username} trip from {self.origin} to {self.destination} [{self.start_time}]'
 
-    def get_absolute_url(self):
-        return reverse('trip:trip_detail', kwargs={'trip_id': self.id})
+class Ride(models.Model):
+    trip = models.ForeignKey(to=Trip, on_delete=models.CASCADE)
+    passenger = models.ForeignKey(to=User, on_delete=models.CASCADE)
+    status = models.CharField(max_length=128)
 
-
-class Location(models.Model):
-    address = models.CharField(max_length=255)
-    lat = models.FloatField()
-    lng = models.FloatField()
+    def __str__(self):
+        return f'{self.passenger.username} ride on {self.trip.driver.username} trip [{self.status}]'
 
 
