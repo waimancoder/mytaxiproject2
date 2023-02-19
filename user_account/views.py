@@ -17,7 +17,8 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.sites.shortcuts import get_current_site
 from mytaxi import settings
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from .models import User
 from rest_framework.authtoken.models import Token
 from django.core.exceptions import ValidationError
@@ -26,6 +27,7 @@ import sys
 from django.core.mail import EmailMessage
 from .models import StudentID
 from django.shortcuts import get_object_or_404
+
 
 
 User = get_user_model()
@@ -269,11 +271,11 @@ class UserUpdateAPI(generics.RetrieveUpdateAPIView):
 
     def put(self, request, *args, **kwargs):
         user = self.get_object()
-        if user.role == 'student':
-            student_id = StudentID.objects.get(user=user)
-            student_id_serializer = StudentIDVerificationSerializer(student_id, data=request.data)
-            if student_id_serializer.is_valid():
-                student_id_serializer.save()
+        # if user.role == 'student':
+        #     student_id = StudentID.objects.get(user=user)
+        #     student_id_serializer = StudentIDVerificationSerializer(student_id, data=request.data)
+        #     if student_id_serializer.is_valid():
+        #         student_id_serializer.save()
         user_serializer = UserSerializer(user, data=request.data)
         if user_serializer.is_valid():
             user_serializer.save()
@@ -304,3 +306,5 @@ class UserListView(generics.ListAPIView):
             return Response({
                 "detail": str(e)
             }, status=status.HTTP_404_NOT_FOUND)
+
+

@@ -8,18 +8,20 @@ class Driver(models.Model):
     car_make = models.CharField(max_length=128)
     car_model = models.CharField(max_length=128)
     car_registration_number = models.CharField(max_length=128)
-    driver_license = models.CharField(max_length=128)
+    driver_license_id = models.CharField(max_length=128)
+    driver_license_img = models.BinaryField()
+    isDriverVerified = models.BooleanField(default=False)
     
     def __str__(self):
         return f'{self.user.username} ({self.car_make} {self.car_model})'
 
 class Trip(models.Model):
-    origin = models.CharField(max_length=256)
-    destination = models.CharField(max_length=256)
-    driver = models.ForeignKey(to=Driver, on_delete=models.CASCADE, related_name='trips')
+    origin = models.CharField(max_length=256, blank=True, null=True)
+    destination = models.CharField(max_length=256, blank=True, null=True)
+    driver = models.ForeignKey(to=Driver, on_delete=models.CASCADE, related_name='trips', blank=True, null=True)
     passengers = models.ManyToManyField(to=User, blank=True, related_name='rides')
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    start_time = models.DateTimeField(blank=True, null=True)
+    end_time = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f'{self.driver.username} trip from {self.origin} to {self.destination} [{self.start_time}]'
