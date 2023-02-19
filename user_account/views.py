@@ -17,13 +17,17 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.sites.shortcuts import get_current_site
 from mytaxi import settings
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from .models import User
 from rest_framework.authtoken.models import Token
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 import sys
 from django.core.mail import EmailMessage
+from .models import StudentID
+from django.shortcuts import get_object_or_404
+
 
 
 User = get_user_model()
@@ -105,14 +109,23 @@ class StudentIDVerificationView(APIView):
         id_number = serializer.validated_data['id_number']
         try:
             if StudentID.objects.get(user=request.user).DoesNotExist or StudentID.objects.get(id_number=id_number).DoesNotExist:
-                return Response({'status': 'User already has a Student ID'})
+                return  Response({
+                            "success": False,
+                            "statusCode": status.HTTP_400_BAD_REQUEST,
+                            "error": "Bad Request",
+                            "message": "User already has a Student ID",
+                        }, status=status.HTTP_400_BAD_REQUEST)
 
         except StudentID.DoesNotExist:
             student = StudentID.objects.create(user= request.user, id_number=id_number, verification_status=True)
             student.save()
             request.user.isVerified = True
             request.user.save()
-            return Response({'status': 'ID Verified'})
+            return Response({
+                    "success": True,
+                    "statusCode": status.HTTP_200_OK,
+                    "message": "ID Verified",
+                }, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -129,9 +142,18 @@ def verify_email(request, uidb64, token):
     if user is not None and auth_token_generator.check_token(user, token):
         user.isVerified = True
         user.save()
-        return Response('Your email address has been verified.')
+        return Response({
+            "success": True,
+            "statusCode": status.HTTP_200_OK,
+            "message": "Your email address has been verified.",
+        }, status=status.HTTP_200_OK)
     else:
-        return Response('Verification link is invalid!')
+        return Response({
+            "success": False,
+            "statusCode": status.HTTP_400_BAD_REQUEST,
+            "error": "Bad Request",
+            "message": "Verification link is invalid!",
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 class PasswordResetView(generics.GenericAPIView):
     
@@ -145,7 +167,11 @@ class PasswordResetView(generics.GenericAPIView):
                     user = User.objects.get(email=serializer.data['email'])
                     if user.isVerified:
                         send_password_reset_email(request, user)
-                        return Response({'status': 'password reset email sent'})
+                        return Response({
+                                    "success": True,
+                                    "statusCode": status.HTTP_200_OK,
+                                    "message": "Password reset email sent",
+                                })
                     else:
                         return Response({
                             "success": False,
@@ -199,7 +225,12 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         if serializer.is_valid():
             print(serializer.data)
             if 'new_password1' not in request.data:
-                return Response({'error': 'new_password1 field is missing from the request payload'})
+                return  Response({
+                            "success": False,
+                            "statusCode": status.HTTP_400_BAD_REQUEST,
+                            "error": "Bad Request",
+                            "message": "new_password1 field is missing from the request payload",
+                        }, status=status.HTTP_400_BAD_REQUEST)
             try:
                  
                 uid = force_str(urlsafe_base64_decode(serializer.data['uid']))
@@ -215,3 +246,65 @@ class PasswordResetConfirmView(generics.GenericAPIView):
         else:
             print(serializer.errors) # add this line
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserUpdateAPI(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = 'email'
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+
+        return Response(data)
+
+        
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
+
+    def put(self, request, *args, **kwargs):
+        user = self.get_object()
+        # if user.role == 'student':
+        #     student_id = StudentID.objects.get(user=user)
+        #     student_id_serializer = StudentIDVerificationSerializer(student_id, data=request.data)
+        #     if student_id_serializer.is_valid():
+        #         student_id_serializer.save()
+        user_serializer = UserSerializer(user, data=request.data)
+        if user_serializer.is_valid():
+            user_serializer.save()
+            return Response({
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "message": "User details updated",
+                "data": UserSerializer(user).data
+            })
+        return Response({
+            "success": False,
+            "statusCode": status.HTTP_400_BAD_REQUEST,
+            "error": "Bad Request",
+            "message": user_serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            users = self.get_queryset()
+            serializer = UserSerializer(users, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({
+                "detail": str(e)
+            }, status=status.HTTP_404_NOT_FOUND)
+
+

@@ -14,8 +14,8 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['native_name']
 
-    CHOICES = [('student', 'Student'),('staff', 'Staff')]
-    role = models.CharField(max_length=10,choices=[('student', 'Student'), ('staff', 'Staff')])
+    CHOICES = [('student', 'Student'),('staff', 'Staff'),('outsider', 'Outsider')]
+    role = models.CharField(max_length=10,choices=[('student', 'Student'), ('staff', 'Staff'),('outsider', 'Outsider')])
 
 
 class StudentID(models.Model):
