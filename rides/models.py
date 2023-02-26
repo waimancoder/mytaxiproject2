@@ -1,5 +1,4 @@
 from django.db import models
-import uuid
 from user_account.models import User
 
 
@@ -9,7 +8,7 @@ class Driver(models.Model):
     car_model = models.CharField(max_length=128)
     car_registration_number = models.CharField(max_length=128)
     driver_license_id = models.CharField(max_length=128)
-    driver_license_img = models.BinaryField()
+    driver_license_img = models.CharField(max_length=1000000)
     isDriverVerified = models.BooleanField(default=False)
     
     def __str__(self):

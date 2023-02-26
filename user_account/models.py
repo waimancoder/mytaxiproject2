@@ -11,11 +11,12 @@ class User(AbstractUser):
     native_name = models.CharField(max_length=125)
     phone_no = models.CharField(max_length = 12)
     isVerified = models.BooleanField(default=False)
+    profile_img = models.CharField(max_length=1000000,null=True, blank=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['native_name']
 
     CHOICES = [('student', 'Student'),('staff', 'Staff'),('outsider', 'Outsider')]
-    role = models.CharField(max_length=10,choices=[('student', 'Student'), ('staff', 'Staff'),('outsider', 'Outsider')])
+    role = models.CharField(max_length=10,choices=[('student', 'Student'), ('staff', 'Staff'),('outsider', 'Outsider')],)
 
 
 class StudentID(models.Model):

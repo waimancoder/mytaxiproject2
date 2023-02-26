@@ -23,7 +23,7 @@ class RequestDriverView(APIView):
     def post(self, request, format=None):
         user = request.user
         if user.is_authenticated and not Driver.objects.filter(user=user).exists():
-            serializer = DriverSerializer(data=request.data, partial=True)
+            serializer = DriverSerializer(data=request.data)
             if serializer.is_valid():
                 driver = serializer.save(user=user)
                 return Response({'status': 'success', 'driver': driver.id}, status=status.HTTP_201_CREATED)
@@ -36,6 +36,11 @@ class RequestDriverView(APIView):
 class DriverApprovalView(APIView):
     
     permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, format=None):
+        drivers = Driver.objects.all()
+        driver_serializer = DriverSerializer(drivers, many=True)
+        return Response(driver_serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request, format=None):
         user = request.user
