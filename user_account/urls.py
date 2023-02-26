@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 urlpatterns = [
-    path('api/login/', LoginAPI.as_view(), name='login'),
+    path('api/login', LoginAPI.as_view(), name='login'),
     path('api/logout', knox_views.LogoutView.as_view(), name='logout'),
     path('api/register', RegisterAPI.as_view(), name='register'),
     path('api/users/<int:pk>', UserRetrieveAPIView().as_view(), name='retrieveuser'),
