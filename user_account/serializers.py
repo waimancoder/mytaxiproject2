@@ -129,3 +129,10 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
             raise ValidationError(password_reset_form.errors)
 
         return data
+
+
+class ProfilePictureSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ['profile_img']

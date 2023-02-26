@@ -9,3 +9,10 @@ docker run --publish 8000:8000 python-django
 docker-compose build // to build the image
 docker-compose run app //to run the service
 docker-compose up //to run the docker container 
+
+
+docker exec -it postgres psql -U postgres
+\c <database_name>
+\d
+\d+ <table_name>
+\q

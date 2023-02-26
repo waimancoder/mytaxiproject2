@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import generics, permissions, status, serializers
-from .serializers import UserSerializer, AuthTokenSerializer, RegisterSerializer, StudentIDVerificationSerializer,PasswordResetConfirmSerializer, PasswordResetSerializer
+from .serializers import UserSerializer, AuthTokenSerializer, RegisterSerializer, StudentIDVerificationSerializer,PasswordResetConfirmSerializer, PasswordResetSerializer, ProfilePictureSerializer
 from django.shortcuts import render
 from rest_framework.response import Response
 from knox.models import AuthToken
@@ -64,6 +64,7 @@ class RegisterAPI(generics.GenericAPIView):
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': auth_token_generator.make_token(user),
         })
+
         send_mail(subject=subject, message=message, from_email=settings.EMAIL_HOST_USER, recipient_list=[user.email], html_message=message)
 
         return Response({
@@ -308,3 +309,25 @@ class UserListView(generics.ListAPIView):
             }, status=status.HTTP_404_NOT_FOUND)
 
 
+class ProfilePictureView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfilePictureSerializer
+    
+    def get_object(self):
+        return self.request.user
+    
+    def get(self, request, *args, **kwargs):
+        user_id = self.get_object().id
+        email = self.get_object().email
+        serializer = self.get_serializer(self.get_object())
+        data = {'user_id': user_id, 'email': email, 'profile_img': serializer.data['profile_img']}
+        return Response(data, status=status.HTTP_200_OK)
+
+    def put(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        user_id = self.get_object().id
+        email = self.get_object().email
+        data = {'user_id': user_id, 'email': email, 'profile_img': serializer.data['profile_img']}
+        return Response(data, status=status.HTTP_200_OK)
