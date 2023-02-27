@@ -156,9 +156,9 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
             profile_img = data['profile_img']
             if profile_img:
                 # Generate a filename for the uploaded image
-                filename = settings.MEDIAFILES_LOCATION + "/" + str(uuid.uuid4()) + os.path.splitext(profile_img.name)[-1]
+                storage = get_storage_class(settings.DEFAULT_FILE_STORAGE)()
+                filename = storage.generate_filename(profile_img.name)
                 # Save the image to the storage backend with the generated filename
-                storage = get_storage_class()()
                 storage.save(filename, profile_img)
                 # Set the profile_img field to the generated filename
                 ret['profile_img'] = filename
