@@ -158,7 +158,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-
+#AWS s3 Bucket Settings
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = 'mytaxi-1'
@@ -170,7 +170,7 @@ AWS_S3_OBJECT_PARAMETERS = {
 AWS_DEFAULT_ACL = None
 AWS_LOCATION = 'static'
 
-
+#Static and Media Settings
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
@@ -194,6 +194,8 @@ ASGI_APPLICATION = "mytaxi.routing.application"
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_METHODS = [ 'DELETE',    'GET',    'OPTIONS',    'PATCH',    'POST',    'PUT',]
 
+
+#Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
