@@ -10,10 +10,8 @@ from django.contrib.auth.tokens import default_token_generator as auth_token_gen
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from rest_framework.authtoken.models import Token
 from django.core.exceptions import ValidationError
-import os
-import uuid
-from django.conf import settings
-from django.core.files.storage import get_storage_class
+import base64
+from django.core.files.base import ContentFile
 
 
 User = get_user_model()
@@ -136,6 +134,25 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
     
+    profile_img = serializers.SerializerMethodField()
+
+    def get_profile_img(self, obj):
+        if obj.profile_img:
+            with open(obj.profile_img.path, "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read())
+                return encoded_string.decode('utf-8')
+        return None
+
+    def update(self, instance, validated_data):
+        profile_img_data = validated_data.get('profile_img', None)
+        if profile_img_data:
+            format, imgstr = profile_img_data.split(';base64,') 
+            ext = format.split('/')[-1] 
+            data = ContentFile(base64.b64decode(imgstr), name=f"{instance.id}_{instance.email}.{ext}")
+            instance.profile_img = data
+            instance.save()
+        return instance
+
     class Meta:
         model = User
         fields = ('profile_img',)
