@@ -24,3 +24,25 @@ class LocationSerializer(serializers.ModelSerializer):
         for block_data in blocks_data:
             Block.objects.create(mahallah=location, **block_data)
         return location
+    
+    def update(self, instance, validated_data):
+        blocks_data = validated_data.pop('blocks')
+        blocks = (instance.blocks).all()
+        blocks = list(blocks)
+        instance.name = validated_data.get('name', instance.name)
+        instance.polygon = validated_data.get('polygon', instance.polygon)
+        instance.lat = validated_data.get('lat', instance.lat)
+        instance.lng = validated_data.get('lng', instance.lng)
+        instance.save()
+
+        for block_data in blocks_data:
+            block = blocks.pop(0)
+            block.name = block_data.get('name', block.name)
+            block.lat = block_data.get('lat', block.lat)
+            block.lng = block_data.get('lng', block.lng)
+            block.save()
+
+        for block in blocks:
+            block.delete()
+
+        return instance
