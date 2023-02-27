@@ -159,8 +159,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 
-AWS_ACCESS_KEY_ID = 'AKIARSFBKZ7Q3NDDY3KO'
-AWS_SECRET_ACCESS_KEY = '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'
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = 'mytaxi-1'
 AWS_S3_REGION_NAME = 'ap-northeast-1'
 AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
