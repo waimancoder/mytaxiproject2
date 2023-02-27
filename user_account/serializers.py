@@ -134,25 +134,22 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 class ProfilePictureSerializer(serializers.ModelSerializer):
     
-    profile_img = serializers.SerializerMethodField()
-
-    def get_profile_img(self, obj):
-        if obj.profile_img:
-            with open(obj.profile_img.path, "rb") as image_file:
-                encoded_string = base64.b64encode(image_file.read())
-                return encoded_string.decode('utf-8')
-        return None
-
-    def update(self, instance, validated_data):
-        profile_img_data = validated_data.get('profile_img', None)
-        if profile_img_data:
-            format, imgstr = profile_img_data.split(';base64,') 
-            ext = format.split('/')[-1] 
-            data = ContentFile(base64.b64decode(imgstr), name=f"{instance.id}_{instance.email}.{ext}")
-            instance.profile_img = data
-            instance.save()
-        return instance
+    profile_img = serializers.CharField()
 
     class Meta:
         model = User
         fields = ('profile_img',)
+
+    def update(self, instance, validated_data):
+        profile_img = validated_data.get('profile_img', None)
+
+        if profile_img:
+            # Decode the base64-encoded image data
+            format, imgstr = profile_img.split(';base64,') 
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name=f'{instance.username}_profile.{ext}')
+
+            # Update the user's profile image field
+            instance.profile_img = data
+            instance.save()
+        return instance
