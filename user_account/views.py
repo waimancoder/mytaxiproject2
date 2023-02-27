@@ -331,3 +331,10 @@ class ProfilePictureView(generics.RetrieveUpdateAPIView):
             profile_img = None
 
         return Response({'profile_img': profile_img})
+    
+    def put(self, request, *args, **kwargs):
+        # Call the get() method to retrieve the current profile image
+        response = self.get(request, *args, **kwargs)
+
+        # Return the same response as the get() method
+        return response
