@@ -9,8 +9,8 @@ import uuid
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, permissions, status, serializers
-from .serializers import DriverSerializer
-from .models import Driver
+from .serializers import DriverSerializer, LocationSerializer
+from .models import Driver, Location
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 
@@ -76,3 +76,15 @@ def upload_base64_image(request):
     # Return a response with the URL of the uploaded image
     image_url = f"https://yourdomain.com/images/{filename}"
     return Response({'status': 'success', 'image_url': image_url})
+
+
+class LocationDetailView(generics.RetrieveUpdateAPIView, generics.ListModelMixin):
+    queryset = Location.objects.all()
+    serializer_class = LocationSerializer
+    lookup_field = 'name'
+
+    def get(self, request, *args, **kwargs):
+        if 'name' in kwargs:
+            return self.retrieve(request, *args, **kwargs)
+        else:
+            return self.list(request, *args, **kwargs)
