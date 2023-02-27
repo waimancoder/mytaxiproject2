@@ -14,7 +14,7 @@ class User(AbstractUser):
     native_name = models.CharField(max_length=125)
     phone_no = models.CharField(max_length = 12)
     isVerified = models.BooleanField(default=False)
-    profile_img = models.ImageField(upload_to='profile', storage=settings.DEFAULT_FILE_STORAGE, null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
+    profile_img = models.ImageField(upload_to='profile', storage=S3Boto3Storage(bucket=settings.AWS_STORAGE_BUCKET_NAME, location=settings.MEDIAFILES_LOCATION), null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['native_name']
 
