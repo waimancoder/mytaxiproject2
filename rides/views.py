@@ -78,7 +78,7 @@ def upload_base64_image(request):
     return Response({'status': 'success', 'image_url': image_url})
 
 
-class LocationDetailView(generics.RetrieveUpdateAPIView, mixins.ListModelMixin):
+class LocationDetailView(generics.RetrieveUpdateAPIView, mixins.ListModelMixin,mixins.CreateModelMixin):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
     lookup_field = 'name'
@@ -88,3 +88,6 @@ class LocationDetailView(generics.RetrieveUpdateAPIView, mixins.ListModelMixin):
             return self.retrieve(request, *args, **kwargs)
         else:
             return self.list(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
