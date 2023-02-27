@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'knox',
     'channels',
     'corsheaders',
+    'storages',
     'user_account',
     'rides',
     'payment',
@@ -158,12 +159,25 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 
-STATIC_URL = '/static/'
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, '/static'),
-# ]
+AWS_ACCESS_KEY_ID = 'AKIARSFBKZ7Q3NDDY3KO'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'mytaxi-1'
+AWS_S3_REGION_NAME = 'ap-northeast-1'
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_DEFAULT_ACL = None
+AWS_LOCATION = 'static'
 
-STATIC_ROOT =  os.path.join(BASE_DIR, 'static')
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
 
 
 # Default primary key field type
