@@ -317,34 +317,3 @@ class ProfilePictureView(generics.RetrieveUpdateAPIView):
     
     def get_object(self):
         return self.request.user
-    
-    def get(self, request, *args, **kwargs):
-        user = self.get_object()
-        user_id = user.id
-        email = user.email
-        serializer = self.get_serializer(user)
-        data = {'user_id': user_id, 'email': email}
-        if serializer.data['profile_img']:
-            # Get the profile image file from the storage backend
-            image_file = default_storage.open(serializer.data['profile_img'])
-            # Create an HTTP response with the image file as the content
-            response = HttpResponse(image_file, content_type='image/jpeg')
-            response['Content-Disposition'] = f'attachment; filename="{serializer.data["profile_img"].split("/")[-1]}"'
-            data['profile_img'] = response
-        else:
-            data['profile_img'] = None
-        return Response(data, status=status.HTTP_200_OK)
-
-    def put(self, request, *args, **kwargs):
-        user = self.get_object()
-        serializer = self.get_serializer(user, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        # If a new profile image was included in the request, save it to the user's profile
-        if 'profile_img' in request.data:
-            user.profile_img = request.data['profile_img']
-            user.save()
-        user_id = user.id
-        email = user.email
-        data = {'user_id': user_id, 'email': email, 'profile_img': serializer.data['profile_img']}
-        
-        return Response(data, status=status.HTTP_200_OK)

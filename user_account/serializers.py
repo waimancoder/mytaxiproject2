@@ -139,30 +139,3 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('profile_img',)
-
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        if 'profile_img' in ret and ret['profile_img']:
-            # Get the profile image file from the storage backend
-            image_file = instance.profile_img
-            # Generate a URL for the image file
-            url = image_file.url if image_file else None
-            ret['profile_img'] = url
-        return ret
-
-    def to_internal_value(self, data):
-        ret = super().to_internal_value(data)
-        if 'profile_img' in data:
-            profile_img = data['profile_img']
-            if profile_img:
-                # Generate a filename for the uploaded image
-                storage_class = get_storage_class(settings.DEFAULT_FILE_STORAGE)
-                storage = storage_class()
-                filename = storage.generate_filename(profile_img.name)
-                # Save the image to the storage backend with the generated filename
-                storage.save(filename, profile_img)
-                # Set the profile_img field to the generated filename
-                ret['profile_img'] = filename
-            else:
-                ret['profile_img'] = None
-        return ret
