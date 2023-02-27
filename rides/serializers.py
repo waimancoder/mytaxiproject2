@@ -17,3 +17,10 @@ class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
         fields = ('name', 'polygon', 'lat', 'lng', 'blocks')
+
+    def create(self, validated_data):
+        blocks_data = validated_data.pop('blocks')
+        location = Location.objects.create(**validated_data)
+        for block_data in blocks_data:
+            Block.objects.create(mahallah=location, **block_data)
+        return location
