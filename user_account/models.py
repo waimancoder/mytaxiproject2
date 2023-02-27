@@ -3,6 +3,9 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from datetime import date
+from storages.backends.s3boto3 import S3Boto3Storage
+from django.core.validators import FileExtensionValidator
+from django.core.files.storage import default_storage
 
 # Create your models here.
 class User(AbstractUser):
@@ -11,7 +14,7 @@ class User(AbstractUser):
     native_name = models.CharField(max_length=125)
     phone_no = models.CharField(max_length = 12)
     isVerified = models.BooleanField(default=False)
-    profile_img = models.CharField(max_length=1000000,null=True, blank=True)
+    profile_img = models.ImageField(upload_to='profile', storage=settings.DEFAULT_FILE_STORAGE, null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['native_name']
 
