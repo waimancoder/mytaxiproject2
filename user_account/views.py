@@ -27,8 +27,7 @@ import sys
 from django.core.mail import EmailMessage
 from .models import StudentID
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
-from django.core.files.storage import default_storage
+import base64
 
 
 
@@ -317,3 +316,14 @@ class ProfilePictureView(generics.RetrieveUpdateAPIView):
     
     def get_object(self):
         return self.request.user
+    
+    def retrieve(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+
+        if user.profile_img:
+            with user.profile_img.open('rb') as f:
+                image_data = base64.b64encode(f.read()).decode('utf-8')
+            serializer.data['profile_img'] = image_data
+
+        return Response(serializer.data)
