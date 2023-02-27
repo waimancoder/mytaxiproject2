@@ -10,7 +10,10 @@ from django.contrib.auth.tokens import default_token_generator as auth_token_gen
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from rest_framework.authtoken.models import Token
 from django.core.exceptions import ValidationError
-
+import os
+import uuid
+from django.conf import settings
+from django.core.files.storage import get_storage_class
 
 
 User = get_user_model()
@@ -135,4 +138,30 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ['profile_img']
+        fields = ('profile_img',)
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if 'profile_img' in ret and ret['profile_img']:
+            # Get the profile image file from the storage backend
+            image_file = instance.profile_img
+            # Generate a URL for the image file
+            url = image_file.url if image_file else None
+            ret['profile_img'] = url
+        return ret
+
+    def to_internal_value(self, data):
+        ret = super().to_internal_value(data)
+        if 'profile_img' in data:
+            profile_img = data['profile_img']
+            if profile_img:
+                # Generate a filename for the uploaded image
+                filename = settings.MEDIAFILES_LOCATION + "/" + str(uuid.uuid4()) + os.path.splitext(profile_img.name)[-1]
+                # Save the image to the storage backend with the generated filename
+                storage = get_storage_class()()
+                storage.save(filename, profile_img)
+                # Set the profile_img field to the generated filename
+                ret['profile_img'] = filename
+            else:
+                ret['profile_img'] = None
+        return ret
