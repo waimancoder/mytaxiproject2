@@ -141,6 +141,7 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
         fields = ('profile_img',)
 
     def update(self, instance, validated_data):
+        print("Update method called")
         profile_img = validated_data.get('profile_img', None)
 
         if profile_img:
