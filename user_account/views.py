@@ -317,13 +317,17 @@ class ProfilePictureView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
     
-    def retrieve(self, request, *args, **kwargs):
-        user = self.get_object()
-        serializer = self.get_serializer(user)
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
 
         if user.profile_img:
-            with user.profile_img.open('rb') as f:
-                image_data = base64.b64encode(f.read()).decode('utf-8')
-            serializer.data['profile_img'] = image_data
+            with user.profile_img.open() as f:
+                data = f.read()
 
-        return Response(serializer.data)
+            format = user.profile_img.name.split('.')[-1]
+            image_data = base64.b64encode(data).decode('utf-8')
+            profile_img = f"data:image/{format};base64,{image_data}"
+        else:
+            profile_img = None
+
+        return Response({'profile_img': profile_img})
