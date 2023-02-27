@@ -333,8 +333,10 @@ class ProfilePictureView(generics.RetrieveUpdateAPIView):
         return Response({'profile_img': profile_img})
     
     def put(self, request, *args, **kwargs):
-        # Call the get() method to retrieve the current profile image
-        response = self.get(request, *args, **kwargs)
+        user = self.get_object()
 
-        # Return the same response as the get() method
-        return response
+        serializer = self.get_serializer(user, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return self.get(request, *args, **kwargs)
