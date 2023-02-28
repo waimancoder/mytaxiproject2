@@ -22,7 +22,7 @@ class LocationSerializer(serializers.ModelSerializer):
         blocks_data = validated_data.pop('blocks')
         location = Location.objects.create(**validated_data)
         for block_data in blocks_data:
-            Block.objects.create(mahallah=location, **block_data)
+            Block.objects.create(location=location, **block_data)
         return location
     
     def update(self, instance, validated_data):
