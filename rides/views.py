@@ -13,70 +13,10 @@ from .serializers import DriverSerializer, LocationSerializer
 from .models import Driver, Location
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
+from rest_framework.exceptions import ValidationError
+from django.http import Http404
 
 User = get_user_model()
-# Create your views here.
-class RequestDriverView(APIView):
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, format=None):
-        user = request.user
-        if user.is_authenticated and not Driver.objects.filter(user=user).exists():
-            serializer = DriverSerializer(data=request.data)
-            if serializer.is_valid():
-                driver = serializer.save(user=user)
-                return Response({'status': 'success', 'driver': driver.id}, status=status.HTTP_201_CREATED)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'status': 'error', 'message': 'User must be authenticated and not already registered as a driver.'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class DriverApprovalView(APIView):
-    
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request, format=None):
-        drivers = Driver.objects.all()
-        driver_serializer = DriverSerializer(drivers, many=True)
-        return Response(driver_serializer.data, status=status.HTTP_200_OK)
-    
-    def post(self, request, format=None):
-        user = request.user
-        if user.isVerified and Driver.objects.filter(user=user).exists():
-            driver = Driver.objects.get(user=user)
-            driver_serializer = DriverSerializer(instance=driver, data=request.data, partial=True)
-            if driver_serializer.is_valid():
-                driver = driver_serializer.save()
-                return Response({'status': 'success', 'driver': driver.id}, status=status.HTTP_200_OK)
-            else:
-                return Response(driver_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'status': 'error', 'message': 'User must be authenticated and registered as a driver.'}, status=status.HTTP_400_BAD_REQUEST)
-
-def decode_base64_image(base64_string):
-    image_data = base64.b64decode(base64_string)
-    return Image.open(BytesIO(image_data))
-
-
-@api_view(['POST'])
-def upload_base64_image(request):
-    base64_image = request.data.get('image')
-    image = decode_base64_image(base64_image)
-    
-    # Generate a unique filename for the image
-    filename = f"{str(uuid.uuid4())}.png"
-    
-    # Save the image to the server's file system
-    image_path = os.path.join("path/to/image/directory", filename)
-    with open(image_path, "wb") as image_file:
-        image.save(image_file, format="PNG")
-        
-    # Return a response with the URL of the uploaded image
-    image_url = f"https://yourdomain.com/images/{filename}"
-    return Response({'status': 'success', 'image_url': image_url})
-
 
 class LocationDetailView(generics.RetrieveUpdateAPIView, mixins.ListModelMixin,mixins.CreateModelMixin):
     queryset = Location.objects.all()
@@ -84,10 +24,20 @@ class LocationDetailView(generics.RetrieveUpdateAPIView, mixins.ListModelMixin,m
     lookup_field = 'name'
 
     def get(self, request, *args, **kwargs):
-        if 'name' in kwargs:
-            return self.retrieve(request, *args, **kwargs)
-        else:
-            return self.list(request, *args, **kwargs)
+        try:
+            if 'name' in kwargs:
+                return self.retrieve(request, *args, **kwargs)
+            else:
+                return self.list(request, *args, **kwargs)
+        except Http404:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+        try:
+            return self.create(request, *args, **kwargs)
+        except ValidationError as e:
+            return Response({'detail': e.detail}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
