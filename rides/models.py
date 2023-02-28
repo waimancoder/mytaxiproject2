@@ -34,7 +34,7 @@ class Ride(models.Model):
         return f'{self.passenger.username} ride on {self.trip.driver.username} trip [{self.status}]'
 
 class Location(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(unique=True, max_length=255)
     polygon = models.TextField()
     lat = models.CharField(max_length=255)
     lng = models.CharField(max_length=255)
@@ -46,7 +46,7 @@ class Block(models.Model):
     name = models.CharField(max_length=255)
     lat = models.CharField(max_length=255)
     lng = models.CharField(max_length=255)
-    mahallah = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='blocks')
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='blocks')
 
     def __str__(self):
         return self.name
