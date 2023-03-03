@@ -37,13 +37,13 @@ class LocationDetailView(generics.RetrieveUpdateAPIView, mixins.ListModelMixin,m
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        response_data = {'success':"success",'statusCode': status.HTTP_200_OK, 'data': serializer.data}
+        response_data = {'status':"OK",'statusCode': status.HTTP_200_OK, 'data': serializer.data}
         return Response(response_data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        response_data = {'success':"success",'statusCode': status.HTTP_200_OK, 'data': serializer.data}
+        response_data = {'status':"OK",'statusCode': status.HTTP_200_OK, 'data': serializer.data}
         return Response(response_data, status=status.HTTP_200_OK)
     
     def post(self, request, *args, **kwargs):
@@ -58,5 +58,5 @@ class LocationDetailView(generics.RetrieveUpdateAPIView, mixins.ListModelMixin,m
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        response_data = {'success':"success",'statusCode': status.HTTP_201_CREATED, 'data': serializer.data}
+        response_data = {'status':"CREATED",'statusCode': status.HTTP_201_CREATED, 'data': serializer.data}
         return Response(response_data, status=status.HTTP_201_CREATED)
