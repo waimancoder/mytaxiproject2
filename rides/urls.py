@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import RequestDriverView, DriverApprovalView, LocationDetailView
+from .views import LocationDetailView
 from django.contrib.auth import get_user_model
 
 urlpatterns = [
