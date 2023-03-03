@@ -50,7 +50,12 @@ class LocationDetailView(generics.RetrieveUpdateAPIView, mixins.ListModelMixin,m
         try:
             return self.create(request, *args, **kwargs)
         except ValidationError as e:
-            return Response({'detail': e.detail}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'status': "Bad Request",
+                'statusCode': status.HTTP_400_BAD_REQUEST,
+                'detail': e.detail
+                }
+                , status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
