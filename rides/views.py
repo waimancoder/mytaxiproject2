@@ -37,12 +37,14 @@ class LocationDetailView(generics.RetrieveUpdateAPIView, mixins.ListModelMixin,m
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response_data = {'status': status.HTTP_200_OK, 'data': serializer.data}
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response_data = {'status': status.HTTP_200_OK, 'data': serializer.data}
+        return Response(response_data, status=status.HTTP_200_OK)
     
     def post(self, request, *args, **kwargs):
         try:
