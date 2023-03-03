@@ -114,12 +114,12 @@ DATABASES = {
         'PORT': 5432,
     }
     # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': os.environ.get('name'),
-    #     'USER': os.environ.get('user'),
-    #     'PASSWORD': os.environ.get('password'),
-    #     'HOST': os.environ.get('hostname'),
-    #     'PORT': 5432,
+    # 'ENGINE': 'django.db.backends.postgresql',
+    # 'NAME': os.environ.get('dbname'),
+    # 'USER': os.environ.get('dbuser'),
+    # 'PASSWORD': os.environ.get('dbpassword'),
+    # 'HOST': os.environ.get('dbhost'),
+    # 'PORT': 5432,
     # }
 }
 
