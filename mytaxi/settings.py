@@ -195,7 +195,7 @@ ASGI_APPLICATION = "mytaxi.routing.application"
 CORS_ORIGIN_ALLOW_ALL = True   
 
 CORS_ALLOW_METHODS = [ 'DELETE',    'GET',    'OPTIONS',    'PATCH',    'POST',    'PUT',]
-CORS_ALLOWED_ORIGINS = ['*']
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000/"]
 
 #Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
