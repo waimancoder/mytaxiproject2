@@ -18,9 +18,16 @@ class LocationSerializer(serializers.ModelSerializer):
         model = Location
         fields = ('name', 'polygon', 'lat', 'lng', 'blocks')
 
+    def create(self, validated_data):
+        blocks_data = validated_data.pop('blocks')
+        location = Location.objects.create(**validated_data)
+        for block_data in blocks_data:
+            Block.objects.create(location=location, **block_data)
+        return location
+    
     def update(self, instance, validated_data):
         blocks_data = validated_data.pop('blocks')
-        blocks = instance.blocks.all()
+        blocks = list(instance.blocks.all())
 
         instance.name = validated_data.get('name', instance.name)
         instance.polygon = validated_data.get('polygon', instance.polygon)
