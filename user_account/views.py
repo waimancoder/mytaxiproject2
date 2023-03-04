@@ -85,13 +85,20 @@ class LoginAPI(KnoxLoginView):
             login(request, user)
             return super(LoginAPI, self).post(request, format=None)
         except serializers.ValidationError as e:
+            
+            error_message = str(e)
+            
+            if hasattr(e, 'detail') and isinstance(e.detail, dict) and 'non_field_errors' in e.detail:
+                error_message = e.detail['non_field_errors'][0]
+            
             return Response({
                 "success": False,
                 "statusCode": status.HTTP_400_BAD_REQUEST,
                 "error": "Bad Request",
-                "message": str(e),
+                "message": error_message,
                 "line": sys.exc_info()[-1].tb_lineno
             }, status=status.HTTP_400_BAD_REQUEST)
+        
         except Exception as e:
             return Response({
                 "success": False,
