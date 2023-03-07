@@ -12,6 +12,7 @@ from rest_framework.authtoken.models import Token
 from django.core.exceptions import ValidationError
 import base64
 from django.core.files.base import ContentFile
+from rides.models import Driver
 
 
 User = get_user_model()
@@ -48,11 +49,13 @@ class RegisterSerializer(serializers.ModelSerializer):
     )
     native_name = serializers.CharField(max_length=100)
     phone_no = serializers.CharField(max_length=12)
+    is_driver = serializers.BooleanField(default=False)
+
 
 
     class Meta:
         model = User
-        fields = ('id', 'email','native_name','password','phone_no','role')
+        fields = ('id', 'email','native_name','password','phone_no','role','is_driver')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -62,8 +65,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.native_name = validated_data['native_name']
         user.phone_no = validated_data['phone_no']
         user.role = validated_data['role']
-
         user.save()
+
+        if validated_data.get('is_driver', False) and user.role == 'student':
+            Driver.objects.create(
+                user=user,
+                car_make='',
+                car_model='',
+                car_registration_number='',
+                driver_license_id=''
+            )
 
         return user
 
