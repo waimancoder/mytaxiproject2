@@ -14,7 +14,7 @@ class Driver(models.Model):
     vehicle_registration_number = models.CharField(max_length=128)
     driver_license_id = models.CharField(max_length=128)
     driver_license_img_front = models.ImageField(upload_to='driver-license/front', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
-    driver_license_img_front = models.ImageField(upload_to='driver-license/back', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
+    driver_license_img_back = models.ImageField(upload_to='driver-license/back', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
     idConfirmation = models.ImageField(upload_to='driver-id-confirmation', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
     vehicle_img = models.ImageField(upload_to='driver-vehicle-img', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
     isDriverVerified = models.BooleanField(default=False)

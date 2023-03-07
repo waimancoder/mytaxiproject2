@@ -27,22 +27,22 @@ class StudentIDNumberField(serializers.Field):
     def to_representation(self, obj):
         try:
             student_id = obj.studentid
-            return student_id.id_number
+            return student_id.matricNo
         except StudentID.DoesNotExist:
             return None
 
 class UserSerializer(serializers.ModelSerializer):
-    id_number = StudentIDNumberField(source='*', read_only=True)
+    matricNo = StudentIDNumberField(source='*', read_only=True)
 
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'native_name', 'phone_no', 'role', 'isVerified','id_number']
+        fields = ['id', 'email', 'fullname', 'phone_no', 'role', 'isVerified','matricNo']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if data['role'] != 'student':
-            data.pop('id_number')
+            data.pop('matricNo')
         return data
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -52,19 +52,19 @@ class RegisterSerializer(serializers.ModelSerializer):
             UniqueValidator(queryset=get_user_model().objects.all())
         ]
     )
-    native_name = serializers.CharField(max_length=100)
+    fullname = serializers.CharField(max_length=100)
     phone_no = serializers.CharField(max_length=12)
 
     class Meta:
         model = User
-        fields = ('id', 'email','native_name','password','phone_no','role')
+        fields = ('id', 'email','fullname','password','phone_no','role')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
     
         username = validated_data['email'].split('@')[0]
         user = User.objects.create_user(username, validated_data['email'],validated_data['password'])
-        user.native_name = validated_data['native_name']
+        user.fullname = validated_data['fullname']
         user.phone_no = validated_data['phone_no']
         user.role = validated_data['role']
         
@@ -90,6 +90,11 @@ class RegisterSerializer(serializers.ModelSerializer):
                 vehicle_ownership = '',
                 vehicle_registration_number = '',
                 driver_license_id = '',
+            )
+            StudentID.objects.create(
+                user=user,
+                matricNo='',
+                verification_status=False
             )
 
         return user
@@ -126,7 +131,7 @@ class AuthTokenSerializer(serializers.Serializer):
 class StudentIDVerificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentID
-        fields = ['id_number']
+        fields = ['matricNo']
 
 class VerifyEmailSerializer(serializers.Serializer):
     uidb64 = serializers.CharField(required=True)

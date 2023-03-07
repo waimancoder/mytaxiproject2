@@ -28,6 +28,11 @@ from django.core.mail import EmailMessage
 from .models import StudentID
 from django.shortcuts import get_object_or_404
 import base64
+from django.http import HttpRequest
+import json
+from rest_framework.request import Request
+
+
 
 
 
@@ -56,16 +61,17 @@ class RegisterAPI(generics.GenericAPIView):
                 "line": sys.exc_info()[-1].tb_lineno
             }, status=status.HTTP_400_BAD_REQUEST)
 
+
         current_site = get_current_site(request)
         subject = 'Verify your email address'
         message = render_to_string('verification_email.html', {
             'user': user,
-            'native_name': user.native_name,
+            'fullname': user.fullname,
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': auth_token_generator.make_token(user),
         })
-
+        
         # send_mail(subject=subject, message=message, from_email=settings.EMAIL_HOST_USER, recipient_list=[user.email], html_message=message)
 
         return Response({
@@ -82,8 +88,17 @@ class LoginAPI(KnoxLoginView):
         try:
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data['user']
-            login(request, user)
-            return super(LoginAPI, self).post(request, format=None)
+            if user.isVerified is False:
+                return Response({
+                "success": False,
+                "statusCode": status.HTTP_400_BAD_REQUEST,
+                "error": "Bad Request",
+                "message": "User is not verified",
+                 }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                login(request, user)
+                return super(LoginAPI, self).post(request, format=None)
+        
         except serializers.ValidationError as e:
             
             error_message = str(e)
@@ -96,7 +111,6 @@ class LoginAPI(KnoxLoginView):
                 "statusCode": status.HTTP_400_BAD_REQUEST,
                 "error": "Bad Request",
                 "message": error_message,
-                "line": sys.exc_info()[-1].tb_lineno
             }, status=status.HTTP_400_BAD_REQUEST)
         
         except Exception as e:
@@ -105,7 +119,6 @@ class LoginAPI(KnoxLoginView):
                 "statusCode": status.HTTP_401_UNAUTHORIZED,
                 "error": "Unauthorized",
                 "message": "Unable to authenticate with provided credentials",
-                "line": sys.exc_info()[-1].tb_lineno
             }, status=status.HTTP_401_UNAUTHORIZED)
 
 class StudentIDVerificationView(APIView):
@@ -115,9 +128,9 @@ class StudentIDVerificationView(APIView):
     def post(self, request, format=None):
         serializer = StudentIDVerificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        id_number = serializer.validated_data['id_number']
+        matricNo = serializer.validated_data['matricNo']
         try:
-            if StudentID.objects.get(user=request.user).DoesNotExist or StudentID.objects.get(id_number=id_number).DoesNotExist:
+            if StudentID.objects.get(user=request.user).DoesNotExist or StudentID.objects.get(matricNo=matricNo).DoesNotExist:
                 return  Response({
                             "success": False,
                             "statusCode": status.HTTP_400_BAD_REQUEST,
@@ -126,7 +139,7 @@ class StudentIDVerificationView(APIView):
                         }, status=status.HTTP_400_BAD_REQUEST)
 
         except StudentID.DoesNotExist:
-            student = StudentID.objects.create(user= request.user, id_number=id_number, verification_status=True)
+            student = StudentID.objects.create(user= request.user, matricNo=matricNo, verification_status=True)
             student.save()
             request.user.isVerified = True
             request.user.save()
