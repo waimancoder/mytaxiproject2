@@ -17,7 +17,7 @@ import mytaxi.settings as settings
 import os
 from django.core.files import File
 import requests
-import tempfile
+import uuid
 
 User = get_user_model()
 
@@ -71,11 +71,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         
         default_pic_url = user.get_profile_img_url()
         response = requests.get(default_pic_url)
-
         print(response.status_code)
+
         if response.status_code == 200:
-            image_file = ContentFile(response.content, name='pic.png')
-            user.profile_img.save('pic.png', image_file, save=True)
+            ext = os.path.splitext(default_pic_url)[1]
+            filename = str(uuid.uuid4()) + ext
+            image_file = ContentFile(response.content, name=filename)
+            user.profile_img.save(filename, image_file, save=True)
         
         user.save()
 

@@ -66,7 +66,7 @@ class RegisterAPI(generics.GenericAPIView):
             'token': auth_token_generator.make_token(user),
         })
 
-        send_mail(subject=subject, message=message, from_email=settings.EMAIL_HOST_USER, recipient_list=[user.email], html_message=message)
+        # send_mail(subject=subject, message=message, from_email=settings.EMAIL_HOST_USER, recipient_list=[user.email], html_message=message)
 
         return Response({
             "user": UserSerializer(user, context=self.get_serializer_context()).data,
