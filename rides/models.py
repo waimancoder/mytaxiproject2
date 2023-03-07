@@ -1,18 +1,29 @@
 from django.db import models
 from user_account.models import User
+from django.core.validators import FileExtensionValidator
+import uuid
 
 
 class Driver(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE)
-    car_make = models.CharField(max_length=128)
-    car_model = models.CharField(max_length=128)
-    car_registration_number = models.CharField(max_length=128)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    vehicle_manufacturer = models.CharField(max_length=128)
+    vehicle_model = models.CharField(max_length=128)
+    vehicle_color = models.CharField(max_length=128)
+    vehicle_ownership = models.CharField(max_length=128)
+    vehicle_registration_number = models.CharField(max_length=128)
     driver_license_id = models.CharField(max_length=128)
-    driver_license_img = models.CharField(max_length=1000000)
+    driver_license_img_front = models.ImageField(upload_to='driver-license/front', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
+    driver_license_img_front = models.ImageField(upload_to='driver-license/back', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
+    idConfirmation = models.ImageField(upload_to='driver-id-confirmation', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
+    vehicle_img = models.ImageField(upload_to='driver-vehicle-img', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
     isDriverVerified = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['id']
     
     def __str__(self):
-        return f'{self.user.username} ({self.car_make} {self.car_model})'
+        return f'{self.user.username} ({self.vehicle_manufacturer} {self.vehicle_model})'
 
 class Trip(models.Model):
     origin = models.CharField(max_length=256, blank=True, null=True)

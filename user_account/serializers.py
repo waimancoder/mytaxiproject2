@@ -13,9 +13,14 @@ from django.core.exceptions import ValidationError
 import base64
 from django.core.files.base import ContentFile
 from rides.models import Driver
-
+import mytaxi.settings as settings
+import os
+from django.core.files import File
+import requests
+import tempfile
 
 User = get_user_model()
+
 
 class StudentIDNumberField(serializers.Field):
 
@@ -62,15 +67,26 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.native_name = validated_data['native_name']
         user.phone_no = validated_data['phone_no']
         user.role = validated_data['role']
+        
+        default_pic_url = user.get_profile_img_url()
+        response = requests.get(default_pic_url)
+        if response.status_code == 200:
+            img_temp = tempfile.NamedTemporaryFile(delete=True)
+            img_temp.write(response.content)
+            img_temp.flush()
+            user.profile_img.save(f'default-pic/pic.png', File(img_temp), save=True)
+        
         user.save()
 
         if user.role == 'student':
             Driver.objects.create(
                 user=user,
-                car_make='',
-                car_model='',
-                car_registration_number='',
-                driver_license_id=''
+                vehicle_manufacturer = '',
+                vehicle_model = '',
+                vehicle_color = '',
+                vehicle_ownership = '',
+                vehicle_registration_number = '',
+                driver_license_id = '',
             )
 
         return user

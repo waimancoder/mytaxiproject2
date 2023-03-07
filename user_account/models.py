@@ -7,6 +7,10 @@ from storages.backends.s3boto3 import S3Boto3Storage
 from django.core.validators import FileExtensionValidator
 from django.core.files.storage import default_storage
 import uuid
+from dotenv import load_dotenv, find_dotenv
+import os
+
+load_dotenv(find_dotenv())
 
 # Create your models here.
 class User(AbstractUser):
@@ -26,6 +30,14 @@ class User(AbstractUser):
     class Meta:
             # set the ordering to use the UUID field
         ordering = ['id']
+
+    def get_profile_img_url(self):
+        AWS_STORAGE_BUCKET_NAME = 'mytaxi-1'
+        AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+        awslocation = os.environ.get('AWS_LOCATION_DEFAULT_PIC')
+        if self.profile_img:
+            return self.profile_img.url
+        return f'https://{AWS_S3_CUSTOM_DOMAIN}/{awslocation}/pic.png'
 
 
 class StudentID(models.Model):
