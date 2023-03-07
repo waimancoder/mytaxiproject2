@@ -74,7 +74,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             img_temp = tempfile.NamedTemporaryFile(delete=True)
             img_temp.write(response.content)
             img_temp.flush()
-            user.profile_img.save(f'default-pic/pic.png', File(img_temp), save=True)
+            user.profile_img.save(f'pic.png', File(img_temp), save=True)
         
         user.save()
 
