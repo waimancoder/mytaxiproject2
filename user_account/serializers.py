@@ -68,13 +68,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.phone_no = validated_data['phone_no']
         user.role = validated_data['role']
         
+        
         default_pic_url = user.get_profile_img_url()
         response = requests.get(default_pic_url)
+
+        print(response.status_code)
         if response.status_code == 200:
-            img_temp = tempfile.NamedTemporaryFile(delete=True)
-            img_temp.write(response.content)
-            img_temp.flush()
-            user.profile_img.save('pic.png', File(img_temp), save=True)
+            image_file = ContentFile(response.content, name='pic.png')
+            user.profile_img.save('pic.png', image_file, save=True)
         
         user.save()
 
