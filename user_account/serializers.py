@@ -49,13 +49,10 @@ class RegisterSerializer(serializers.ModelSerializer):
     )
     native_name = serializers.CharField(max_length=100)
     phone_no = serializers.CharField(max_length=12)
-    is_driver = serializers.BooleanField(default=False)
-
-
 
     class Meta:
         model = User
-        fields = ('id', 'email','native_name','password','phone_no','role','is_driver')
+        fields = ('id', 'email','native_name','password','phone_no','role')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -67,7 +64,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.role = validated_data['role']
         user.save()
 
-        if validated_data.get('is_driver', False) and user.role == 'student':
+        if user.role == 'student':
             Driver.objects.create(
                 user=user,
                 car_make='',

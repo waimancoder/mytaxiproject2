@@ -6,9 +6,11 @@ from datetime import date
 from storages.backends.s3boto3 import S3Boto3Storage
 from django.core.validators import FileExtensionValidator
 from django.core.files.storage import default_storage
+import uuid
 
 # Create your models here.
 class User(AbstractUser):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(max_length = 50, blank = True, null = True, unique = True)
     email = models.EmailField(_('email address'), unique = True)
     native_name = models.CharField(max_length=125)
@@ -20,6 +22,10 @@ class User(AbstractUser):
 
     CHOICES = [('student', 'Student'),('staff', 'Staff'),('outsider', 'Outsider')]
     role = models.CharField(max_length=10,choices=[('student', 'Student'), ('staff', 'Staff'),('outsider', 'Outsider')],)
+
+    class Meta:
+            # set the ordering to use the UUID field
+        ordering = ['id']
 
 
 class StudentID(models.Model):
