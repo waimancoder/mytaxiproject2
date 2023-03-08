@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, permissions, status, serializers, mixins
-from .serializers import DriverLicenseSerializer, LocationSerializer
+from .serializers import DriverIdConfirmationSerializer, DriverLicenseSerializer, LocationSerializer
 from .models import Driver, Location
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
@@ -141,11 +141,68 @@ class DriverLicenseViewSet(viewsets.ModelViewSet):
         response_data = {
         'status': "OK",
         'statusCode': status.HTTP_200_OK,
-        'data': serializer.data
-            }
+        'data': {
+            'user_id': serializer.data['user_id'],
+            'driver_license_img_front': settings.MEDIA_URL + str(serializer.data['driver_license_img_front']),
+            'driver_license_img_back': settings.MEDIA_URL + str(serializer.data['driver_license_img_back']),
+         }
+        }
         
         return Response(response_data, status=status.HTTP_200_OK)
 
-   
 
+class DriverIdConfirmationViewSet(viewsets.ModelViewSet):
+    queryset = Driver.objects.all()
+    serializer_class = DriverIdConfirmationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    http_method_names = ['get', 'post', 'put', 'patch', 'delete', 'options']
+    lookup_field = 'user_id'
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        data = []
+        for driver in serializer.data:
+            idConfirmation = driver['idConfirmation']
+            if not idConfirmation:
+                front = None
+            data.append({
+                'user_id': driver['user_id'],
+                'idConfirmation': settings.MEDIA_URL + str(idConfirmation) if idConfirmation else None,
+            })
+        return Response(data)
+    
+    @action(detail=True, methods=['get'])
+    def driver_id_confirmation_img(self, request, user_id=None):
+       print("driver_id_confirmation_img method is called")
+       driver = self.get_object()
+       idConfirmation_url = None
+       try:
+           idConfirmation_url = str(driver.idConfirmation.url)
+       except ValueError:
+           pass
+       data = {
+           'user_id': driver.user_id,
+           'idConfirmation': idConfirmation_url
+       }
+       return Response(data)
+    
+    @action(detail=True, methods=['put'])
+    def update_idConfirm(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        
+        response_data = {
+        'status': "OK",
+        'statusCode': status.HTTP_200_OK,
+        'data': {
+            'user_id': serializer.data['user_id'],
+            'idConfirmation': str(serializer.data['idConfirmation']),
+            }
+        }
+        
+        return Response(response_data, status=status.HTTP_200_OK)
+    

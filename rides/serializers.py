@@ -10,7 +10,7 @@ class DriverLicenseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Driver
-        fields = ['driver_license_img_front', 'driver_license_img_back','user_id']
+        fields = ['user_id','driver_license_img_front', 'driver_license_img_back']
         read_only_fields = ['user_id']
 
     def update(self, instance, validated_data):
@@ -35,6 +35,31 @@ class DriverLicenseSerializer(serializers.ModelSerializer):
 
             instance.driver_license_img_back = data
             instance.save()
+        return instance
+    
+
+class DriverIdConfirmationSerializer(serializers.ModelSerializer):
+    user_id = serializers.CharField(read_only=True)
+    idConfirmation = serializers.CharField()
+
+    class Meta:
+        model = Driver
+        fields = ['user_id','idConfirmation']
+        read_only_fields = ['user_id']
+    
+    def update(self, instance, validated_data):
+        print("Update method called")
+        idConfirmation = validated_data.get('idConfirmation', None)
+        
+        if idConfirmation:
+            # Decode the base64-encoded image data
+            format, imgstr = idConfirmation.split(';base64,') 
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name=f'{instance.user_id}_idConfirmation.{ext}')
+
+            instance.idConfirmation = data
+            instance.save()
+
         return instance
     
 
