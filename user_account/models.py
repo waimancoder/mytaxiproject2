@@ -20,13 +20,14 @@ class User(AbstractUser):
     fullname = models.CharField(max_length=125)
     phone_no = models.CharField(max_length = 12)
     isVerified = models.BooleanField(default=False)
+    birthdate = models.DateTimeField(blank=True, null = True)
     profile_img = models.ImageField(upload_to='profile/', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['native_name']
 
 
     GENDER_CHOICES =[('male', 'Male'),('female', 'Female')]
-    gender = models.CharField(max_length=10,choices=[('male', 'Male'), ('female', 'Female')])
+    gender = models.CharField(blank=True, max_length=10,choices=[('male', 'Male'), ('female', 'Female')])
                               
     CHOICES = [('student', 'Student'),('staff', 'Staff'),('outsider', 'Outsider')]
     role = models.CharField(max_length=10,choices=[('student', 'Student'), ('staff', 'Staff'),('outsider', 'Outsider')],)
@@ -46,7 +47,7 @@ class User(AbstractUser):
 
 class StudentID(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    matricNo = models.CharField(max_length=20, unique=True)
+    matricNo = models.CharField(max_length=20, null=True, blank=True, unique=True)
     verification_status = models.BooleanField(default=False)
 
 

@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import generics, permissions, status, serializers
+from rest_framework import generics, permissions, status, serializers, mixins
 from .serializers import UserSerializer, AuthTokenSerializer, RegisterSerializer, StudentIDVerificationSerializer,PasswordResetConfirmSerializer, PasswordResetSerializer, ProfilePictureSerializer
 from django.shortcuts import render
 from rest_framework.response import Response
@@ -18,7 +18,6 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.sites.shortcuts import get_current_site
 from mytaxi import settings
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from .models import User
 from rest_framework.authtoken.models import Token
 from django.core.exceptions import ValidationError
@@ -28,9 +27,8 @@ from django.core.mail import EmailMessage
 from .models import StudentID
 from django.shortcuts import get_object_or_404
 import base64
-from django.http import HttpRequest
-import json
-from rest_framework.request import Request
+from django.conf import settings
+
 
 
 
@@ -43,6 +41,7 @@ class UserRetrieveAPIView(generics.RetrieveAPIView):
     User =get_user_model()
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
 
 class RegisterAPI(generics.GenericAPIView):
     serializer_class = RegisterSerializer
@@ -78,6 +77,16 @@ class RegisterAPI(generics.GenericAPIView):
             "user": UserSerializer(user, context=self.get_serializer_context()).data,
             "token": AuthToken.objects.create(user)[1]
         })
+    
+    def options(self, request, *args, **kwargs):
+        methods = ['POST', 'OPTIONS']
+        content_types = ['application/json']
+        headers = {
+            'Allow': ', '.join(methods),
+            'Content-Type': ', '.join(content_types),
+        }
+        return Response({"methods": methods, "content_types":content_types, "headers": headers
+            },status=status.HTTP_200_OK, headers=headers)
 
 
 class LoginAPI(KnoxLoginView):
@@ -88,16 +97,24 @@ class LoginAPI(KnoxLoginView):
         try:
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data['user']
-            if user.isVerified is False:
-                return Response({
-                "success": False,
-                "statusCode": status.HTTP_400_BAD_REQUEST,
-                "error": "Bad Request",
-                "message": "User is not verified",
-                 }, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                login(request, user)
-                return super(LoginAPI, self).post(request, format=None)
+            # TODO: bila ada email company nanti uncomment
+            # if user.isVerified is False:
+            #     return Response({
+            #     "success": False,
+            #     "statusCode": status.HTTP_400_BAD_REQUEST,
+            #     "error": "Bad Request",
+            #     "message": "User is not verified",
+            #      }, status=status.HTTP_400_BAD_REQUEST)
+            # else:
+            login(request, user)
+            response_data = {'id': user.id, 'email': user.email}
+            response_data.update(super().post(request, format=None).data)
+            
+            return Response({
+                "success": True,
+                "statusCode": status.HTTP_200_OK,
+                "data" : response_data
+            }, status=status.HTTP_200_OK)
         
         except serializers.ValidationError as e:
             
@@ -341,12 +358,7 @@ class ProfilePictureView(generics.RetrieveUpdateAPIView):
         user = self.request.user
 
         if user.profile_img:
-            with user.profile_img.open() as f:
-                data = f.read()
-
-            format = user.profile_img.name.split('.')[-1]
-            image_data = base64.b64encode(data).decode('utf-8')
-            profile_img = f"data:image/{format};base64,{image_data}"
+            profile_img = settings.MEDIA_URL + str(user.profile_img)
         else:
             profile_img = None
 

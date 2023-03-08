@@ -18,9 +18,20 @@ import os
 from django.core.files import File
 import requests
 import uuid
+from datetime import datetime
+
 
 User = get_user_model()
 
+class DateField(serializers.DateTimeField):
+    def to_internal_value(self, value):
+        try:
+            date_obj = datetime.strptime(value, '%d/%m/%Y')
+        except ValueError:
+            raise serializers.ValidationError('Invalid date format. Date should be in dd/mm/yyyy format.')
+
+        cleaned_date_str = date_obj.strftime('%Y-%m-%d %H:%M:%S')
+        return super().to_internal_value(cleaned_date_str)
 
 class StudentIDNumberField(serializers.Field):
 
@@ -32,12 +43,13 @@ class StudentIDNumberField(serializers.Field):
             return None
 
 class UserSerializer(serializers.ModelSerializer):
+    
     matricNo = StudentIDNumberField(source='*', read_only=True)
-
-
+    birthdate = DateField()
+    
     class Meta:
         model = User
-        fields = ['id', 'email', 'fullname', 'phone_no', 'role', 'isVerified','matricNo']
+        fields = ['id', 'email', 'fullname', 'phone_no', 'role', 'isVerified','matricNo', 'birthdate']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -90,10 +102,14 @@ class RegisterSerializer(serializers.ModelSerializer):
                 vehicle_ownership = '',
                 vehicle_registration_number = '',
                 driver_license_id = '',
+                driver_license_img_front = None,
+                driver_license_img_back = None,
+                idConfirmation = None,
+                vehicle_img = None,  
             )
             StudentID.objects.create(
                 user=user,
-                matricNo='',
+                matricNo=None,
                 verification_status=False
             )
 
@@ -186,3 +202,4 @@ class ProfilePictureSerializer(serializers.ModelSerializer):
             instance.profile_img = data
             instance.save()
         return instance
+    

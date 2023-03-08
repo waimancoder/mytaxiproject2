@@ -1,10 +1,42 @@
 from rest_framework import serializers
+from django.core.files.base import ContentFile
 from .models import Driver, Location, Block 
+import base64
 
-class DriverSerializer(serializers.ModelSerializer):
+class DriverLicenseSerializer(serializers.ModelSerializer):
+    user_id = serializers.CharField(read_only=True)
+    driver_license_img_front = serializers.CharField()
+    driver_license_img_back = serializers.CharField()
+
     class Meta:
         model = Driver
-        fields = ['car_make', 'car_model', 'car_registration_number', 'driver_license_id', 'driver_license_img']
+        fields = ['driver_license_img_front', 'driver_license_img_back','user_id']
+        read_only_fields = ['user_id']
+
+    def update(self, instance, validated_data):
+        print("Update method called")
+        driver_license_img_front = validated_data.get('driver_license_img_front', None)
+        driver_license_img_back = validated_data.get('driver_license_img_back', None)
+        
+        if driver_license_img_front:
+            # Decode the base64-encoded image data
+            format, imgstr = driver_license_img_front.split(';base64,') 
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name=f'{instance.user_id}_driver_license_img_front.{ext}')
+
+            instance.driver_license_img_front = data
+            instance.save()
+        
+        if driver_license_img_back:
+            # Decode the base64-encoded image data
+            format, imgstr = driver_license_img_back.split(';base64,') 
+            ext = format.split('/')[-1]
+            data = ContentFile(base64.b64decode(imgstr), name=f'{instance.user_id}_driver_license_img_back.{ext}')
+
+            instance.driver_license_img_back = data
+            instance.save()
+        return instance
+    
 
 class BlockSerializer(serializers.ModelSerializer):
     class Meta:

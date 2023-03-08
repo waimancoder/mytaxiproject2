@@ -6,8 +6,10 @@ from .views import UserUpdateAPI, UserListView
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import get_user_model
+from rest_framework import routers
 
 User = get_user_model()
+router = routers.SimpleRouter()
 
 urlpatterns = [
     path('api/login', LoginAPI.as_view(), name='login'),
@@ -24,3 +26,5 @@ urlpatterns = [
 
     
 ]
+
+urlpatterns += router.urls
