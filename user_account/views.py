@@ -1,3 +1,5 @@
+import traceback
+from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework import generics, permissions, status, serializers, mixins
 from .serializers import UserSerializer, AuthTokenSerializer, RegisterSerializer, StudentIDVerificationSerializer,PasswordResetConfirmSerializer, PasswordResetSerializer, ProfilePictureSerializer
@@ -30,11 +32,28 @@ import base64
 from django.conf import settings
 
 
-
-
-
-
 User = get_user_model()
+
+
+def custom_500_page_not_found(request):
+    tb = traceback.format_exc().splitlines()[-5:]
+    error_msg = f"Internal Server Error: {tb}"
+    return JsonResponse ({
+                "success": False,
+                "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "error": "Internal Server Error, Please Contact Server Admin",
+                "exception": str(sys.exc_info()[1]),
+                "traceback": error_msg
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def custom_404_page_not_found(request, exception):
+    return JsonResponse ({
+                "success": False,
+                "statusCode": status.HTTP_404_NOT_FOUND,
+                "error": "Page Not Found or Invalid API Endpoint",
+            }, status=status.HTTP_404_NOT_FOUND)
+
 
 # Create your views here.
 class UserRetrieveAPIView(generics.RetrieveAPIView):

@@ -1,3 +1,4 @@
+from django.conf.urls import handler404
 from django.urls import path
 from knox import views as knox_views
 from . import views
@@ -8,8 +9,10 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import get_user_model
 from rest_framework import routers
 
+
 User = get_user_model()
 router = routers.SimpleRouter()
+
 
 urlpatterns = [
     path('api/login', LoginAPI.as_view(), name='login'),
