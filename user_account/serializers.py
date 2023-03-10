@@ -33,29 +33,43 @@ class DateField(serializers.DateTimeField):
         cleaned_date_str = date_obj.strftime('%Y-%m-%d %H:%M:%S')
         return super().to_internal_value(cleaned_date_str)
 
-class StudentIDNumberField(serializers.Field):
-
-    def to_representation(self, obj):
-        try:
-            student_id = obj.studentid
-            return student_id.matricNo
-        except StudentID.DoesNotExist:
-            return None
 
 class UserSerializer(serializers.ModelSerializer):
-    
-    matricNo = StudentIDNumberField(source='*', read_only=True)
+    matricNo = serializers.SerializerMethodField()
     birthdate = DateField()
-    
+
     class Meta:
         model = User
-        fields = ['id', 'email', 'fullname', 'phone_no', 'role', 'isVerified','matricNo', 'birthdate']
+        fields = ['id', 'email', 'fullname', 'phone_no', 'role', 'isVerified', 'matricNo', 'birthdate']
+        read_only_fields = ['isVerified', 'role']
+
+    def get_matricNo(self, instance):
+        try:
+            return instance.StudentID.matricNo
+        except StudentID.DoesNotExist:
+            return None
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if data['role'] != 'student':
             data.pop('matricNo')
         return data
+
+    def update(self, instance, validated_data):
+        studentID_data = validated_data.pop('StudentID', {})
+        StudentID = instance.StudentID
+        if 'matricNo' in studentID_data and StudentID.matricNo is None:
+            StudentID.matricNo = studentID_data['matricNo']
+            StudentID.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+
+        return instance
+
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(

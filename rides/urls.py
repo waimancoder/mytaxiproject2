@@ -1,13 +1,15 @@
 from django.urls import path, include
 from . import views
 from rest_framework import routers
-from rides.views import DriverIdConfirmationViewSet, LocationDetailView, DriverLicenseViewSet, UserDriverDetailsViewSet
+from rides.views import DriverIdConfirmationViewSet, LocationDetailView, DriverLicenseViewSet, UserDriverDetailsViewSet, UserSubmissionForm
 from django.contrib.auth import get_user_model
 
 router = routers.SimpleRouter(trailing_slash=False)
 router.register(r'api/driver/driverlicenses', DriverLicenseViewSet)
 router.register(r'api/driver/id-confirmation', DriverIdConfirmationViewSet)
 router.register(r'api/driver/driver-detail', UserDriverDetailsViewSet)
+router.register(r'api/driver/driver-submission', UserSubmissionForm)
+
 
 urlpatterns = [
     path('api/locations', LocationDetailView.as_view(), name='location-list'),

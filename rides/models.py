@@ -10,7 +10,6 @@ class Driver(models.Model):
     vehicle_manufacturer = models.CharField(max_length=128)
     vehicle_model = models.CharField(max_length=128)
     vehicle_color = models.CharField(max_length=128)
-    vehicle_ownership = models.CharField(max_length=128)
     vehicle_registration_number = models.CharField(max_length=128)
     driver_license_id = models.CharField(max_length=128)
     driver_license_img_front = models.ImageField(upload_to='driver-license/front', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
@@ -18,6 +17,9 @@ class Driver(models.Model):
     idConfirmation = models.ImageField(upload_to='driver-id-confirmation', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
     vehicle_img = models.ImageField(upload_to='driver-vehicle-img', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
     isDriverVerified = models.BooleanField(default=False)
+
+    CHOICES =[('owned', 'Owned'),('rented', 'Rented')]
+    vehicle_ownership = models.CharField(max_length=20, blank=True,choices=CHOICES)
 
     class Meta:
         ordering = ['id']

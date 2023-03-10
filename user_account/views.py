@@ -1,7 +1,7 @@
 import traceback
 from django.http import JsonResponse
 from django.shortcuts import render
-from rest_framework import generics, permissions, status, serializers, mixins
+from rest_framework import generics, permissions, status, serializers, mixins, viewsets
 from .serializers import UserSerializer, AuthTokenSerializer, RegisterSerializer, StudentIDVerificationSerializer,PasswordResetConfirmSerializer, PasswordResetSerializer, ProfilePictureSerializer
 from django.shortcuts import render
 from rest_framework.response import Response
@@ -55,11 +55,14 @@ def custom_404_page_not_found(request, exception):
             }, status=status.HTTP_404_NOT_FOUND)
 
 
-# Create your views here.
-class UserRetrieveAPIView(generics.RetrieveAPIView):
-    User =get_user_model()
-    queryset = User.objects.all()
+# Create your views here. 
+class UserRetrieveAPIView(viewsets.ModelViewSet):
+    queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'put', 'options']
+    lookup_field = 'id'
+
 
 
 class RegisterAPI(generics.GenericAPIView):
@@ -157,33 +160,34 @@ class LoginAPI(KnoxLoginView):
                 "message": "Unable to authenticate with provided credentials",
             }, status=status.HTTP_401_UNAUTHORIZED)
 
-class StudentIDVerificationView(APIView):
-    # serializer_class = StudentIDVerificationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+# #TODO: MATRIC NO XYOH
+# class StudentIDVerificationView(APIView):
+#     # serializer_class = StudentIDVerificationSerializer
+#     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, format=None):
-        serializer = StudentIDVerificationSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        matricNo = serializer.validated_data['matricNo']
-        try:
-            if StudentID.objects.get(user=request.user).DoesNotExist or StudentID.objects.get(matricNo=matricNo).DoesNotExist:
-                return  Response({
-                            "success": False,
-                            "statusCode": status.HTTP_400_BAD_REQUEST,
-                            "error": "Bad Request",
-                            "message": "User already has a Student ID",
-                        }, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request, format=None):
+#         serializer = StudentIDVerificationSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         matricNo = serializer.validated_data['matricNo']
+#         try:
+#             if StudentID.objects.get(user=request.user) is  not None or StudentID.objects.get(matricNo=matricNo) is not "":
+#                 return  Response({
+#                             "success": False,
+#                             "statusCode": status.HTTP_400_BAD_REQUEST,
+#                             "error": "Bad Request",
+#                             "message": "User already has a Student ID",
+#                         }, status=status.HTTP_400_BAD_REQUEST)
 
-        except StudentID.DoesNotExist:
-            student = StudentID.objects.create(user= request.user, matricNo=matricNo, verification_status=True)
-            student.save()
-            request.user.isVerified = True
-            request.user.save()
-            return Response({
-                    "success": True,
-                    "statusCode": status.HTTP_200_OK,
-                    "message": "ID Verified",
-                }, status=status.HTTP_200_OK)
+#         except:
+#             student = StudentID.objects.create(user= request.user, matricNo=matricNo, verification_status=True)
+#             student.save()
+#             request.user.isVerified = True
+#             request.user.save()
+#             return Response({
+#                     "success": True,
+#                     "statusCode": status.HTTP_200_OK,
+#                     "message": "ID Verified",
+#                 }, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

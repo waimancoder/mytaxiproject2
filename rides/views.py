@@ -3,7 +3,6 @@ from rest_framework.metadata import SimpleMetadata
 from user_account.models import User
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics, permissions, status, serializers, mixins
 from .serializers import DriverIdConfirmationSerializer, DriverLicenseSerializer, LocationSerializer, UserDriverDetailsSerializer
 from .models import Driver, Location
@@ -124,8 +123,8 @@ class DriverLicenseViewSet(viewsets.ModelViewSet):
                 back = ''
             data.append({
                 'user_id': driver['user_id'],
-                'front': settings.MEDIA_URL + str(front) if front else None,
-                'back': settings.MEDIA_URL + str(back) if back else None,
+                'front': settings.MEDIA_URL + str(front) if front else '',
+                'back': settings.MEDIA_URL + str(back) if back else '',
             })
         return Response({
                         "success": True,
@@ -333,7 +332,7 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
                 "email": user.email,
                 "fullname": user.fullname,
                 "phone_no": user.phone_no,
-                "birthdate": user.birthdate,
+                "birthdate": user.birthdate if user.birthdate else "",
                 "profile_img": user.get_profile_img_url(),
                 "vehicle_manufacturer": driver.vehicle_manufacturer,
                 "vehicle_model": driver.vehicle_model,
@@ -370,7 +369,7 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
                 "email": instance.user.email,
                 "fullname": instance.user.fullname,
                 "phone_no": instance.user.phone_no,
-                "birthdate": instance.user.birthdate,
+                "birthdate": instance.user.birthdate if instance.user.birthdate else "",
                 "profile_img": instance.user.profile_img.url if instance.user.profile_img else None,
                 "vehicle_manufacturer": instance.vehicle_manufacturer,
                 "vehicle_model": instance.vehicle_model,
@@ -403,6 +402,70 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
             raise exceptions.APIException("Failed to update driver")
 
 
+class UserSubmissionForm(viewsets.ModelViewSet):
+    queryset = Driver.objects.all()
+    serializer_class = UserDriverDetailsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get']
+    lookup_field = 'user_id'
 
+    metadata_class = CustomMetadata
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            driver = self.get_object()
+            user = driver.user
+            data ={}  
+
+            basicinfo = {
+                "user_id": user.id,
+                "email": user.email,
+                "fullname": user.fullname,
+                "phone_no": user.phone_no,
+                "birthdate": user.birthdate,
+                "profile_img": user.get_profile_img_url(),
+                "isFilled": True if user.id and user.email and user.fullname and user.birthdate and user.get_profile_img_url() else False,
+            }
+
+            try:
+                front = driver.driver_license_img_front.url
+            except:
+                front = None
+            try:    
+                behind = driver.driver_license_img_back.url
+            except:
+                behind = None
+
+            driver_license = {
+                'front': settings.MEDIA_URL + str(front) if front else '',
+                'back': settings.MEDIA_URL + str(behind) if behind else '',
+                'isFilled': True if front and behind else False
+            }
+            try:
+                idConfirmation = driver.idConfirmation.url
+            except:
+                idConfirmation = None
+
+            license_confirmation = {
+                'idConfirmation': settings.MEDIA_URL + str(idConfirmation) if idConfirmation else '',
+                'isFilled': True if idConfirmation else False
+            }
+
+            data['basicinfo'] = basicinfo
+            data['driver_license'] = driver_license
+            data['license_confirmation'] = license_confirmation
+            return Response({
+                "success": True,
+                "message" : "Driver Application Form Data",
+                "data": data
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(e)
+            return Response({
+                "success": False,
+                "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "error": "Internal Server Error",
+                "message": "Please Contact Server Admin",
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
       
     

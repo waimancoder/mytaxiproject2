@@ -48,7 +48,6 @@ class User(AbstractUser):
 class StudentID(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     matricNo = models.CharField(max_length=20, null=True, blank=True, unique=True)
-    verification_status = models.BooleanField(default=False)
 
 
 
