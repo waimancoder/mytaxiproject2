@@ -22,6 +22,7 @@ class User(AbstractUser):
     isVerified = models.BooleanField(default=False)
     birthdate = models.DateTimeField(blank=True, null = True)
     profile_img = models.ImageField(upload_to='profile/', null=True, blank=True, validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])])
+    nationality = models.CharField(max_length=125,null = True, blank = True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['native_name']
 

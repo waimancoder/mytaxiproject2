@@ -422,7 +422,9 @@ class UserSubmissionForm(viewsets.ModelViewSet):
                 "email": user.email,
                 "fullname": user.fullname,
                 "phone_no": user.phone_no,
-                "birthdate": user.birthdate,
+                "birthdate": user.birthdate if user.birthdate else "",
+                "gender": user.gender,
+                "nationality" : user.nationality if user.nationality else "",
                 "profile_img": user.get_profile_img_url(),
                 "isFilled": True if user.id and user.email and user.fullname and user.birthdate and user.get_profile_img_url() else False,
             }
