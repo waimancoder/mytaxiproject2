@@ -456,6 +456,7 @@ class UserSubmissionForm(viewsets.ModelViewSet):
                 "vehicle_manufacturer": driver.vehicle_manufacturer,
                 "vehicle_model": driver.vehicle_model,
                 "vehicle_color": driver.vehicle_color,
+                
                 "vehicle_ownership": driver.vehicle_ownership,
                 "vehicle_registration_number": driver.vehicle_registration_number,
                 "isFilled" : True if driver.vehicle_manufacturer and driver.vehicle_model and driver.vehicle_color 
