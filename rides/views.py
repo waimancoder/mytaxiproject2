@@ -302,7 +302,9 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
                     "email": user.email,
                     "fullname": user.fullname,
                     "phone_no": user.phone_no,
-                    "birthdate": user.birthdate,
+                    "birthdate": user.birthdate if user.birthdate else "",
+                    "gender": user.gender,
+                    "nationality": user.nationality if user.nationality else "",
                     "profile_img": user.get_profile_img_url(),
                 }
                 drivers.append(driver_data)
@@ -328,6 +330,8 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
                 "fullname": user.fullname,
                 "phone_no": user.phone_no,
                 "birthdate": user.birthdate if user.birthdate else "",
+                "gender": user.gender,
+                "nationality": user.nationality if user.nationality else "",
                 "profile_img": user.get_profile_img_url(),
             }
             return Response(response)
@@ -360,6 +364,8 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
                 "fullname": instance.user.fullname,
                 "phone_no": instance.user.phone_no,
                 "birthdate": instance.user.birthdate if instance.user.birthdate else "",
+                "gender": instance.user.gender,
+                "nationality" : instance.user.nationality if instance.user.nationality else "",
                 "profile_img": instance.user.profile_img.url if instance.user.profile_img else None,
             }
             return Response(response_data)
