@@ -105,7 +105,7 @@ class DriverLicenseViewSet(viewsets.ModelViewSet):
     serializer_class = DriverLicenseSerializer
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    http_method_names = ['get', 'PUT', 'patch', 'delete','options']
+    http_method_names = ['get', 'put', 'patch', 'delete','options']
     lookup_field = 'user_id'
 
     metadata_class = CustomMetadata
