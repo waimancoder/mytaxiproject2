@@ -75,11 +75,6 @@ class UserDriverDetailsSerializer(serializers.ModelSerializer):
     phone_no = serializers.CharField(source='user.phone_no',required=False)
     birthdate = serializers.DateTimeField(source='user.birthdate', required=False)
     profile_img = serializers.CharField(source='user.profile_img', required=False)
-    vehicle_manufacturer = serializers.CharField(required=False)
-    vehicle_model = serializers.CharField(required=False)
-    vehicle_color = serializers.CharField(required=False)
-    vehicle_ownership = serializers.CharField(required=False)
-    vehicle_registration_number = serializers.CharField(required=False)
     profile_img_url = serializers.SerializerMethodField()
 
     def get_profile_img_url(self,instance):
@@ -88,7 +83,7 @@ class UserDriverDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Driver
-        fields = ('user_id','email', 'fullname', 'phone_no', 'birthdate','profile_img','profile_img_url', 'vehicle_manufacturer', 'vehicle_model', 'vehicle_color', 'vehicle_ownership', 'vehicle_registration_number')
+        fields = ('user_id','email', 'fullname', 'phone_no', 'birthdate','profile_img','profile_img_url')
         read_only_fields = ['user_id', 'profile_img_url']
 
     def update(self, instance, validated_data):
@@ -150,7 +145,20 @@ class UserDriverDetailsSerializer(serializers.ModelSerializer):
                 "message": "Failed to update driver",
             }
             raise serializers.ValidationError(error_msg)
-        
+
+class DriverVehicleInfo(serializers.ModelSerializer):
+
+    vehicle_manufacturer = serializers.CharField(required=False)
+    vehicle_model = serializers.CharField(required=False)
+    vehicle_color = serializers.CharField(required=False)
+    vehicle_ownership = serializers.CharField(required=False)
+    vehicle_registration_number = serializers.CharField(required=False)
+
+    class Meta:
+        model = Driver
+        fields = ('vehicle_manufacturer', 'vehicle_model', 'vehicle_color', 'vehicle_ownership', 'vehicle_registration_number')
+
+
 
 class BlockSerializer(serializers.ModelSerializer):
     class Meta:

@@ -4,7 +4,7 @@ from user_account.models import User
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework import generics, permissions, status, serializers, mixins
-from .serializers import DriverIdConfirmationSerializer, DriverLicenseSerializer, LocationSerializer, UserDriverDetailsSerializer
+from .serializers import DriverIdConfirmationSerializer, DriverLicenseSerializer, DriverVehicleInfo, LocationSerializer, UserDriverDetailsSerializer
 from .models import Driver, Location
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
@@ -304,11 +304,6 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
                     "phone_no": user.phone_no,
                     "birthdate": user.birthdate,
                     "profile_img": user.get_profile_img_url(),
-                    "vehicle_manufacturer": driver.vehicle_manufacturer,
-                    "vehicle_model": driver.vehicle_model,
-                    "vehicle_color": driver.vehicle_color,
-                    "vehicle_ownership": driver.vehicle_ownership,
-                    "vehicle_registration_number": driver.vehicle_registration_number
                 }
                 drivers.append(driver_data)
             return Response(drivers)
@@ -334,11 +329,6 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
                 "phone_no": user.phone_no,
                 "birthdate": user.birthdate if user.birthdate else "",
                 "profile_img": user.get_profile_img_url(),
-                "vehicle_manufacturer": driver.vehicle_manufacturer,
-                "vehicle_model": driver.vehicle_model,
-                "vehicle_color": driver.vehicle_color,
-                "vehicle_ownership": driver.vehicle_ownership,
-                "vehicle_registration_number": driver.vehicle_registration_number
             }
             return Response(response)
         except Http404:
@@ -371,11 +361,6 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
                 "phone_no": instance.user.phone_no,
                 "birthdate": instance.user.birthdate if instance.user.birthdate else "",
                 "profile_img": instance.user.profile_img.url if instance.user.profile_img else None,
-                "vehicle_manufacturer": instance.vehicle_manufacturer,
-                "vehicle_model": instance.vehicle_model,
-                "vehicle_color": instance.vehicle_color,
-                "vehicle_ownership": instance.vehicle_ownership,
-                "vehicle_registration_number": instance.vehicle_registration_number
             }
             return Response(response_data)
         except Http404:
@@ -479,4 +464,104 @@ class UserSubmissionForm(viewsets.ModelViewSet):
                 "message": "Please Contact Server Admin",
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
       
+
+class DriverVehicleInfoViewSet(viewsets.ModelViewSet):
+    queryset = Driver.objects.all()
+    serializer_class = DriverVehicleInfo
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'put', 'options']
+    lookup_field = 'user_id'
+
+    metadata_class = CustomMetadata
+
+    def list(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset())
+            drivers = []
+            for driver in queryset:
+                driver_data = {
+                    "user_id": driver.user_id,
+                    "vehicle_manufacturer": driver.vehicle_manufacturer,
+                    "vehicle_model": driver.vehicle_model,
+                    "vehicle_color": driver.vehicle_color,
+                    "vehicle_ownership": driver.vehicle_ownership,
+                    "vehicle_registration_number": driver.vehicle_registration_number
+                }
+                drivers.append(driver_data)
+            return Response(drivers)
+        except Exception as e:
+            print(e)
+            return Response({
+                "success": False,
+                "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "error": "Internal Server Error",
+                "message": "Please Contact Server Admin",
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            driver = self.get_object()
+            user = driver.user
+            response = {
+                "user_id": user.id,
+                "vehicle_manufacturer": driver.vehicle_manufacturer,
+                "vehicle_model": driver.vehicle_model,
+                "vehicle_color": driver.vehicle_color,
+                "vehicle_ownership": driver.vehicle_ownership,
+                "vehicle_registration_number": driver.vehicle_registration_number
+            }
+            return Response(response)
+        except Http404:
+            return Response({
+                    "success": False,
+                    "statusCode": status.HTTP_404_NOT_FOUND,
+                    "error": "Not Found",
+                    "message": "Driver not found",
+                }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(e)
+            return Response({
+                "success": False,
+                "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "error": "Internal Server Error",
+                "message": "Please Contact Server Admin",
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+    def update(self, request, *args, **kwargs):
+        try:
+            partial = kwargs.pop('partial', False)
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=partial)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            response_data = {
+                "user_id": str(instance.user.id),
+                "vehicle_manufacturer": instance.vehicle_manufacturer,
+                "vehicle_model": instance.vehicle_model,
+                "vehicle_color": instance.vehicle_color,
+                "vehicle_ownership": instance.vehicle_ownership,
+                "vehicle_registration_number": instance.vehicle_registration_number
+            }
+            return Response(response_data)
+        except Http404:
+            return Response({
+                "success": False,
+                "statusCode": status.HTTP_404_NOT_FOUND,
+                "error": "Not Found",
+                "message": "Driver not found",
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(e)
+            return Response({
+                "success": False,
+                "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "error": "Internal Server Error",
+                "message": "Please Contact Server Admin",
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def perform_update(self, serializer):
+        try:
+            serializer.save()
+        except Exception as e:
+            print(e)
+            raise exceptions.APIException("Failed to update driver")
