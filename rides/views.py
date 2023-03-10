@@ -452,10 +452,19 @@ class UserSubmissionForm(viewsets.ModelViewSet):
                 'idConfirmation': settings.MEDIA_URL + str(idConfirmation) if idConfirmation else '',
                 'isFilled': True if idConfirmation else False
             }
-
+            vehicleinfo = {
+                "vehicle_manufacturer": driver.vehicle_manufacturer,
+                "vehicle_model": driver.vehicle_model,
+                "vehicle_color": driver.vehicle_color,
+                "vehicle_ownership": driver.vehicle_ownership,
+                "vehicle_registration_number": driver.vehicle_registration_number,
+                "isFilled" : True if driver.vehicle_manufacturer and driver.vehicle_model and driver.vehicle_color 
+                                and driver.vehicle_ownership else False
+            }
             data['basicinfo'] = basicinfo
             data['driver_license'] = driver_license
             data['license_confirmation'] = license_confirmation
+            data['vehicleinfo'] = vehicleinfo
             return Response({
                 "success": True,
                 "message" : "Driver Application Form Data",

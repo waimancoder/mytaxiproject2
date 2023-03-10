@@ -13,7 +13,6 @@ from django.core.exceptions import ValidationError
 import base64
 from django.core.files.base import ContentFile
 from rides.models import Driver
-import mytaxi.settings as settings
 import os
 from django.core.files import File
 import requests
