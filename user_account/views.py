@@ -1,5 +1,5 @@
 import traceback
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from rest_framework import generics, permissions, status, serializers, mixins, viewsets
 from .serializers import UserSerializer, AuthTokenSerializer, RegisterSerializer, StudentIDVerificationSerializer,PasswordResetConfirmSerializer, PasswordResetSerializer, ProfilePictureSerializer
@@ -227,20 +227,12 @@ class PasswordResetView(generics.GenericAPIView):
             if serializer.is_valid():
                 try:
                     user = User.objects.get(email=serializer.data['email'])
-                    if user.isVerified:
-                        send_password_reset_email(request, user)
-                        return Response({
-                                    "success": True,
-                                    "statusCode": status.HTTP_200_OK,
-                                    "message": "Password reset email sent",
-                                })
-                    else:
-                        return Response({
-                            "success": False,
-                            "statusCode": status.HTTP_400_BAD_REQUEST,
-                            "error": "Bad Request",
-                            "message": "User not verified",
-                        }, status=status.HTTP_400_BAD_REQUEST)
+                    send_password_reset_email(request, user)
+                    return Response({
+                                "success": True,
+                                "statusCode": status.HTTP_200_OK,
+                                "message": "Password reset email sent",
+                            })
                 except User.DoesNotExist:
                     return Response({
                         "success": False,

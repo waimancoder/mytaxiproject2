@@ -1,2 +1,8 @@
 venv/
 .env
+Dockerfile
+server.crt
+server.csr
+server.key
+server.pem
+
