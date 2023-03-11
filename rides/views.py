@@ -243,6 +243,7 @@ class DriverIdConfirmationViewSet(viewsets.ModelViewSet):
             "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
             "error": "Internal Server Error",
             "message": "Please Contact Server Admin",
+            "traceback" : str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=True, methods=['put'])
@@ -278,6 +279,7 @@ class DriverIdConfirmationViewSet(viewsets.ModelViewSet):
                 "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "error": "Internal Server Error",
                 "message": "Please Contact Server Admin",
+                "traceback": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 
@@ -316,6 +318,7 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
                 "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "error": "Internal Server Error",
                 "message": "Please Contact Server Admin",
+                "traceback" : str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     
@@ -349,6 +352,7 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
                 "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "error": "Internal Server Error",
                 "message": "Please Contact Server Admin",
+                "traceback": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     def update(self, request, *args, **kwargs):
@@ -383,6 +387,7 @@ class UserDriverDetailsViewSet(viewsets.ModelViewSet):
                 "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "error": "Internal Server Error",
                 "message": "Please Contact Server Admin",
+                "traceback": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def perform_update(self, serializer):
@@ -468,6 +473,7 @@ class UserSubmissionForm(viewsets.ModelViewSet):
                 "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "error": "Internal Server Error",
                 "message": "Please Contact Server Admin",
+                "traceback": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
       
 
@@ -502,6 +508,7 @@ class DriverVehicleInfoViewSet(viewsets.ModelViewSet):
                 "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "error": "Internal Server Error",
                 "message": "Please Contact Server Admin",
+                "traceback": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def retrieve(self, request, *args, **kwargs):
@@ -531,6 +538,7 @@ class DriverVehicleInfoViewSet(viewsets.ModelViewSet):
                 "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "error": "Internal Server Error",
                 "message": "Please Contact Server Admin",
+                "traceback": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     def update(self, request, *args, **kwargs):
@@ -563,6 +571,7 @@ class DriverVehicleInfoViewSet(viewsets.ModelViewSet):
                 "statusCode": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 "error": "Internal Server Error",
                 "message": "Please Contact Server Admin",
+                "traceback": str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def perform_update(self, serializer):
