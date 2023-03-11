@@ -74,7 +74,7 @@ class RegisterAPI(generics.GenericAPIView):
                 "success": False,
                 "statusCode": status.HTTP_400_BAD_REQUEST,
                 "error": "Bad Request",
-                "message": "Email already exists",
+                "message": str(e),
                 "line": sys.exc_info()[-1].tb_lineno
             }, status=status.HTTP_400_BAD_REQUEST)
 
