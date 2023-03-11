@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'knox',
     'channels',
     'channels_redis',
+    'djangochannelsrestframework',
     'corsheaders',
     'storages',
     'user_account',

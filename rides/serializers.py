@@ -2,7 +2,7 @@ from dataclasses import fields
 from rest_framework import serializers, status
 from django.core.files.base import ContentFile
 from rest_framework.authentication import get_user_model
-from .models import Driver, Location, Block 
+from .models import Driver, DriverLocation, Location, Block 
 import base64
 from user_account.models import User
 
@@ -161,6 +161,12 @@ class DriverVehicleInfo(serializers.ModelSerializer):
         model = Driver
         fields = ('vehicle_manufacturer', 'vehicle_model', 'vehicle_color', 'vehicle_ownership', 'vehicle_registration_number')
 
+class DriverLocationSerializer(serializers.ModelSerializer):
+    user_id = serializers.UUIDField(source='user.id', read_only=True)
+
+    class Meta:
+        model = DriverLocation
+        fields = ['user_id','latitude', 'longitude']
 
 
 class BlockSerializer(serializers.ModelSerializer):

@@ -12,7 +12,7 @@ from rest_framework.authtoken.models import Token
 from django.core.exceptions import ValidationError
 import base64
 from django.core.files.base import ContentFile
-from rides.models import Driver
+from rides.models import Driver, DriverLocation
 import os
 from django.core.files import File
 import requests
@@ -44,9 +44,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_matricNo(self, instance):
         try:
-            return instance.StudentID.matricNo
+            student_id = StudentID.objects.get(user=instance)
+            matric_no = student_id.matricNo
         except StudentID.DoesNotExist:
-            return None
+            matric_no = None
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -120,10 +121,14 @@ class RegisterSerializer(serializers.ModelSerializer):
                 idConfirmation = None,
                 vehicle_img = None,  
             )
+            DriverLocation.objects.create(
+                user = user,
+                latitude = None,
+                longitude = None,
+            )
             StudentID.objects.create(
                 user=user,
                 matricNo=None,
-                verification_status=False
             )
 
         return user
@@ -139,22 +144,13 @@ class AuthTokenSerializer(serializers.Serializer):
         email = attrs.get('email')
         password = attrs.get('password')
 
-        user_request = get_object_or_404(
-                    User,
-                    email=email,
-                )
-        username = user_request.username
-
-        user = authenticate(
-            username=email,
-            password=password
-        )
+        user = authenticate(request=self.context.get('request'),
+                            username=email, password=password)
 
         if not user:
-            msg = _('Unable to authenticate with provided credentials')
-            raise serializers.ValidationError(msg, code='authorization')
+            raise serializers.ValidationError('Invalid email or password')
 
-        attrs['user'] = user
+        attrs['username'] = user.username
         return attrs
 
 class StudentIDVerificationSerializer(serializers.ModelSerializer):
