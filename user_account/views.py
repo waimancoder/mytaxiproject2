@@ -129,6 +129,11 @@ class LoginAPI(KnoxLoginView):
                 "fullname" :user.fullname,
                 "phone_no" : user.phone_no,
                 "role" : user.role,
+                "birthdate" : user.birthdate,
+                "gender": user.gender,
+                "nationality" : user.nationality,
+                "profile_img": user.get_profile_img_url(),
+                "isVerified" : user.isVerified,
                 "expiry": data.get("expiry"),
                 "token" : data.get("token")
             }
