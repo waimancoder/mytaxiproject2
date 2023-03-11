@@ -39,7 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'fullname', 'phone_no', 'role', 'isVerified', 'matricNo', 'birthdate']
+        fields = ['id', 'email', 'fullname', 'phone_no', 'role', 'isVerified', 'matricNo', 'birthdate', 'gender', 'nationality']
         read_only_fields = ['isVerified', 'role']
 
     def get_matricNo(self, instance):
