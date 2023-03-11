@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 import os
+import redis
+
 
 load_dotenv(find_dotenv())
 
@@ -29,7 +31,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -46,6 +47,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'knox',
     'channels',
+    'channels_redis',
+    'djangochannelsrestframework',
     'corsheaders',
     'storages',
     'user_account',
@@ -100,18 +103,6 @@ WSGI_APPLICATION = 'mytaxi.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR +'/db.sqlite3',
-    # }
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.postgresql',
-    #     'NAME': 'postgres',
-    #     'USER': 'postgres',
-    #     'PASSWORD': 'postgres',
-    #     'HOST': 'pgdb',
-    #     'PORT': 5432,
-    # }
     'default': {
     'ENGINE': 'django.db.backends.postgresql',
     'NAME': os.environ.get('dbname'),
@@ -122,6 +113,28 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': os.environ.get('REDIS_LOCATION'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": ['redis://' + os.environ.get('REDIS_LOCATION')],
+        },
+    },
+}
+
+redis_pool = redis.ConnectionPool.from_url('redis://' + os.environ.get('REDIS_LOCATION'))
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

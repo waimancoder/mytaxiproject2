@@ -1,17 +1,12 @@
 import traceback
 from django.http import Http404, JsonResponse
-from django.shortcuts import render
 from rest_framework import generics, permissions, status, serializers, mixins, viewsets
 from .serializers import UserSerializer, AuthTokenSerializer, RegisterSerializer, StudentIDVerificationSerializer,PasswordResetConfirmSerializer, PasswordResetSerializer, ProfilePictureSerializer
-from django.shortcuts import render
 from rest_framework.response import Response
 from knox.models import AuthToken
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.mixins import ListModelMixin, CreateModelMixin, UpdateModelMixin, RetrieveModelMixin
 from knox.views import LoginView as KnoxLoginView
-from django.contrib.auth import login, get_user_model, update_session_auth_hash
-from rest_framework.views import APIView
-from .models import StudentID
+from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.tokens import default_token_generator as auth_token_generator
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -19,7 +14,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.sites.shortcuts import get_current_site
 from mytaxi import settings
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view
 from .models import User
 from rest_framework.authtoken.models import Token
 from django.core.exceptions import ValidationError
@@ -28,8 +23,9 @@ import sys
 from django.core.mail import EmailMessage
 from .models import StudentID
 from django.shortcuts import get_object_or_404
-import base64
 from django.conf import settings
+from django.contrib.auth.signals import user_logged_in
+
 
 
 User = get_user_model()
@@ -112,82 +108,64 @@ class RegisterAPI(generics.GenericAPIView):
 
 
 class LoginAPI(KnoxLoginView):
-    permission_classes = (permissions.AllowAny,)
-
+    permission_classes = [permissions.AllowAny]
+    serializer_class = AuthTokenSerializer
+    
     def post(self, request, format=None):
-        serializer = AuthTokenSerializer(data=request.data)
+        
         try:
+            serializer = self.serializer_class(data=request.data, context={'request': request})
             serializer.is_valid(raise_exception=True)
-            user = serializer.validated_data['user']
-            # TODO: bila ada email company nanti uncomment
-            # if user.isVerified is False:
-            #     return Response({
-            #     "success": False,
-            #     "statusCode": status.HTTP_400_BAD_REQUEST,
-            #     "error": "Bad Request",
-            #     "message": "User is not verified",
-            #      }, status=status.HTTP_400_BAD_REQUEST)
-            # else:
-            login(request, user)
-            response_data = {'id': user.id, 'email': user.email}
-            response_data.update(super().post(request, format=None).data)
+            username = serializer.validated_data['username']
+            user = User.objects.get(username=username)  # get User instance
+            token_ttl = self.get_token_ttl()
+            instance, token = AuthToken.objects.create(user, token_ttl)  # pass User instance to create()
+            user_logged_in.send(sender=user.__class__, request=request, user=user)
+            data = self.get_post_response_data(request, token, instance)
             
-            return Response({
+            basicinfo = {
+                "id" : user.id,
+                "email" : user.email,
+                "fullname" :user.fullname,
+                "phone_no" : user.phone_no,
+                "role" : user.role,
+                "birthdate" : user.birthdate,
+                "gender": user.gender,
+                "nationality" : user.nationality,
+                "profile_img": user.get_profile_img_url(),
+                "isVerified" : user.isVerified,
+                "expiry": data.get("expiry"),
+                "token" : data.get("token")
+            }
+
+            response_data = {
                 "success": True,
                 "statusCode": status.HTTP_200_OK,
-                "data" : response_data
-            }, status=status.HTTP_200_OK)
-        
-        except serializers.ValidationError as e:
-            
-            error_message = str(e)
-            
-            if hasattr(e, 'detail') and isinstance(e.detail, dict) and 'non_field_errors' in e.detail:
-                error_message = e.detail['non_field_errors'][0]
-            
-            return Response({
-                "success": False,
-                "statusCode": status.HTTP_400_BAD_REQUEST,
-                "error": "Bad Request",
-                "message": error_message,
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        except Exception as e:
+                "data": basicinfo,
+            }
+
+            return Response(response_data)
+        except serializers.ValidationError as error:
             return Response({
                 "success": False,
                 "statusCode": status.HTTP_401_UNAUTHORIZED,
-                "error": "Unauthorized",
-                "message": "Unable to authenticate with provided credentials",
+                "error": "Invalid Email or Password",
+                "message": error.detail.get('non_field_errors', 'Invalid email or password'),
             }, status=status.HTTP_401_UNAUTHORIZED)
-
-# #TODO: MATRIC NO XYOH
-# class StudentIDVerificationView(APIView):
-#     # serializer_class = StudentIDVerificationSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def post(self, request, format=None):
-#         serializer = StudentIDVerificationSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         matricNo = serializer.validated_data['matricNo']
-#         try:
-#             if StudentID.objects.get(user=request.user) is  not None or StudentID.objects.get(matricNo=matricNo) is not "":
-#                 return  Response({
-#                             "success": False,
-#                             "statusCode": status.HTTP_400_BAD_REQUEST,
-#                             "error": "Bad Request",
-#                             "message": "User already has a Student ID",
-#                         }, status=status.HTTP_400_BAD_REQUEST)
-
-#         except:
-#             student = StudentID.objects.create(user= request.user, matricNo=matricNo, verification_status=True)
-#             student.save()
-#             request.user.isVerified = True
-#             request.user.save()
-#             return Response({
-#                     "success": True,
-#                     "statusCode": status.HTTP_200_OK,
-#                     "message": "ID Verified",
-#                 }, status=status.HTTP_200_OK)
+    
+    #         # TODO: bila ada email company nanti uncomment
+    #         # if user.isVerified is False:
+    #         #     return Response({
+    #         #     "success": False,
+    #         #     "statusCode": status.HTTP_400_BAD_REQUEST,
+    #         #     "error": "Bad Request",
+    #         #     "message": "User is not verified",
+    #         #      }, status=status.HTTP_400_BAD_REQUEST)
+    #         # else:
+    #         login(request, user)
+    #         response_data = {'id': user.id, 'email': user.email}
+    #         response_data.update(super().post(request, format=None).data)
+   
 
 
 @api_view(['GET'])

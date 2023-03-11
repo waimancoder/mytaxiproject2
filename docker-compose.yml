@@ -7,31 +7,10 @@ services:
       - .:/djangoproject
     ports:
       - 8000:8000
+      - 9000:9000
     image: mytaxi
     container_name: mytaxi
-    # command: python manage.py runserver 0.0.0.0:8000
-    command: gunicorn mytaxi.wsgi:application --bind 0.0.0.0:8000 --timeout 120 --workers 4
-    depends_on:
-      - pgdb
-
-  pgdb:
-    image: postgres
-    container_name: pgdb
-    environment:
-      POSTGRES_DB: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: pgadmin
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: password
-    ports:
-      - 5050:80
-    links:
-      - pgdb:pgsql-server
+    entrypoint: /djangoproject/docker-entrypoint.sh
 
   nginx:
     image: nginx:latest

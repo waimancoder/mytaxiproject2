@@ -26,6 +26,16 @@ class Driver(models.Model):
     
     def __str__(self):
         return f'{self.user.username} ({self.vehicle_manufacturer} {self.vehicle_model})'
+    
+class DriverLocation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(to=User, on_delete=models.CASCADE)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    
+    def __str__(self):
+        return f'{self.user.username} ({self.latitude}, {self.longitude})'
+
 
 class Trip(models.Model):
     origin = models.CharField(max_length=256, blank=True, null=True)
