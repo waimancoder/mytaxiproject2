@@ -39,7 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'fullname', 'phone_no', 'role', 'isVerified', 'matricNo', 'birthdate', 'gender', 'nationality']
+        fields = ['id', 'email', 'fullname', 'dialCode','phone_no', 'role', 'isVerified', 'matricNo', 'birthdate', 'gender', 'nationality']
         read_only_fields = ['isVerified', 'role']
 
     def get_matricNo(self, instance):
@@ -83,7 +83,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email','fullname','password','phone_no','role')
+        fields = ('id', 'email','fullname','password','phone_no','dialCode','role')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -92,6 +92,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(username, validated_data['email'],validated_data['password'])
         user.fullname = validated_data['fullname']
         user.phone_no = validated_data['phone_no']
+        user.dialCode = validated_data['dialCode']
         user.role = validated_data['role']
         
         
@@ -119,7 +120,8 @@ class RegisterSerializer(serializers.ModelSerializer):
                 driver_license_img_front = None,
                 driver_license_img_back = None,
                 idConfirmation = None,
-                vehicle_img = None,  
+                vehicle_img = None,
+                statusDriver = '',  
             )
             DriverLocation.objects.create(
                 user = user,

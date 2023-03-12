@@ -90,9 +90,24 @@ class RegisterAPI(generics.GenericAPIView):
         })
         
         # send_mail(subject=subject, message=message, from_email=settings.EMAIL_HOST_USER, recipient_list=[user.email], html_message=message)
+        user_data = UserSerializer(user, context=self.get_serializer_context()).data
+        
+        # userinfo = {
+        #     "id": user_data.get('id'),
+        #     "email": user_data.get('email'),
+        #     "fullname": user_data.get('fullname'),
+        #     "dialCode": user_data.get('dialCode'),
+        #     "phone_no": user_data.get('phone_no'),
+        #     "role": user_data.get('role'),
+        #     "isVerified": user_data.get('isVerified'),
+        #     "matricNo": user_data.get('matricNo') if  user_data.get('matricNo') else "",
+        #     "birthdate": user_data.get('birthdate') if user_data.get('birthdate') else "",
+        #     "gender": user_data.get('gender') if user_data.get('gender') else "",
+        #     "nationality": user_data.get('nationality') if user_data.get('nationality') else ""
+        # }
 
         return Response({
-            "user": UserSerializer(user, context=self.get_serializer_context()).data,
+            "user": user_data,
             "token": AuthToken.objects.create(user)[1]
         })
     
@@ -126,11 +141,12 @@ class LoginAPI(KnoxLoginView):
             basicinfo = {
                 "id" : user.id,
                 "email" : user.email,
-                "fullname" :user.fullname,
-                "phone_no" : user.phone_no,
+                "fullname" :user.fullname ,
+                "dialCode" : user.dialCode if user.dialCode else "",
+                "phone_no" : user.phone_no if user.phone_no else "",
                 "role" : user.role,
                 "birthdate" : user.birthdate if user.birthdate else "",
-                "gender": user.gender,
+                "gender": user.gender if user.gender else "",
                 "nationality" : user.nationality if user.nationality else "",
                 "profile_img": user.get_profile_img_url(),
                 "isVerified" : user.isVerified,

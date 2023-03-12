@@ -127,7 +127,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": ['redis://' + os.environ.get('REDIS_LOCATION')],
+            "hosts": [("mytaxi.1jtf09.clustercfg.apne1.cache.amazonaws.com", 6379)],
         },
     },
 }

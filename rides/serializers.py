@@ -78,6 +78,7 @@ class UserDriverDetailsSerializer(serializers.ModelSerializer):
     profile_img_url = serializers.SerializerMethodField()
     gender = serializers.CharField(source='user.gender',required=False)
     nationality = serializers.CharField(source='user.nationality',required=False)
+    dialCode = serializers.CharField(source='user.dial_code',required=False)
 
     def get_profile_img_url(self,instance):
         return instance.user.get_profile_img_url()
@@ -85,7 +86,7 @@ class UserDriverDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Driver
-        fields = ('user_id','email', 'fullname', 'phone_no', 'birthdate','gender','nationality','profile_img','profile_img_url')
+        fields = ('user_id','email', 'fullname', 'dialCode', 'phone_no' ,'birthdate','gender','nationality','profile_img','profile_img_url')
         read_only_fields = ['user_id', 'profile_img_url']
 
     def update(self, instance, validated_data):
@@ -114,6 +115,7 @@ class UserDriverDetailsSerializer(serializers.ModelSerializer):
             user.birthdate = user_data.get('birthdate', user.birthdate)
             user.gender = user_data.get('gender', user.gender)
             user.nationality = user_data.get('nationality', user.nationality)
+            user.dialCode = user_data.get('dialCode', user.dialCode)
             
             if user_data.get('profile_img'):
                 profile_img = user_data.get('profile_img')

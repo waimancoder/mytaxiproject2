@@ -16,13 +16,13 @@ django.setup()
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
-from django.urls import re_path
+from django.urls import re_path, path
 import mytaxi.consumers as mytaxi_consumers
 import rides.consumers as rides_consumers
 
 websocket_urlpatterns = [
     re_path(r'ws/dummy/$', mytaxi_consumers.DummyConsumer.as_asgi()),
-    re_path(r'ws/driver/(?P<user_id>[^/]+)/$', rides_consumers.DriverLocationsConsumer.as_asgi()),
+    re_path(r'ws/driver/(?P<user_id>[^/]+)/$', rides_consumers.DriverConsumer.as_asgi()),
 ]
 
 

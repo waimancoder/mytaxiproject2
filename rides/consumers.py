@@ -9,49 +9,64 @@ from rides.serializers import DriverLocationSerializer
 from typing import List
 from djangochannelsrestframework.decorators import action
 from djangochannelsrestframework.mixins import RetrieveModelMixin
+from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
+from user_account.models import User
+import json
+from channels.layers import get_channel_layer
+import redis
+from django.conf import settings
+from asgiref.sync import sync_to_async
 
 
-class DriverLocationsConsumer(GenericAsyncAPIConsumer):
-    queryset = DriverLocation.objects.all()
-    serializer_class = DriverLocationSerializer
-    permission_classes = [permissions.AllowAny]
-    lookup_fields = 'user_id'
-    lookup_url_kwarg = 'user_id'
+channel_layer = get_channel_layer()
 
-    def get_object(self, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        user_id = kwargs['user_id']
-        obj = get_object_or_404(queryset, user_id=user_id)
-        return obj
-    
-    @action()
-    async def get_driver_location(self, user_id, **kwargs):
-        """
-        Retrieve a single DriverLocation instance by driver ID and return it as a response.
-        """
+class DriverConsumer(AsyncWebsocketConsumer):
+
+    async def connect(self):
+        # Extract the user ID from the WebSocket URL
+        user_id = self.scope['url_route']['kwargs']['user_id']
+
+        # Check if the user ID is valid (e.g. exists in the database)
         try:
-            driver_location = await database_sync_to_async(self.get_object)(user_id=user_id)
-            print(driver_location.latitude)
-        except ObjectDoesNotExist:
-            raise ValueError('Driver location not found.')
-        
-        if driver_location.latitude is None or driver_location.longitude is None:
-            return await self.reply(
-                action='get_driver_location',
-                status='Driver location found but latitude and/or longitude are NULL.',
-            )
+            user = await sync_to_async(User.objects.get)(id=user_id)
+        except User.DoesNotExist:
+            await self.close()
+            return
 
-        latitude = float(driver_location.latitude)
-        longitude = float(driver_location.longitude)
-        data = {
-            "latitude": latitude,
-            "longitude": longitude
+        # Add the user ID to the channel group for drivers
+       
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # Remove the user ID from the channel group for drivers
+        print('Removing')
+        await self.channel_layer.group_discard('drivers', self.channel_name)
+
+    async def receive(self, text_data):
+        # Parse the incoming JSON message
+        data = json.loads(text_data)
+
+        # Extract the message content
+        message = data['message']
+
+        response = {
+            'status': 'success',
+            'message': f"Received message: {message}"
         }
-        await self.reply(
-            action='get_driver_location',
-            status= "Driver location found",
-            data = data
+        await self.send(json.dumps(response))
+
+        # Broadcast the message to all drivers
+        await self.channel_layer.group_send(
+            'drivers',
+            {
+                'type': 'driver_message',
+                'message': message
+            }
         )
-    
 
-
+    async def driver_message(self, event):
+        # Send a message to the client
+        message = event['message']
+        await self.send(text_data=json.dumps({
+            'message': message
+        }))
