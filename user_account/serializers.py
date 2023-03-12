@@ -80,6 +80,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     )
     fullname = serializers.CharField(max_length=100)
     phone_no = serializers.CharField(max_length=12)
+    dialCode = serializers.CharField(max_length=10)
 
     class Meta:
         model = User
