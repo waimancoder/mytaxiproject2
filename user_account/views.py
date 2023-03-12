@@ -92,22 +92,22 @@ class RegisterAPI(generics.GenericAPIView):
         # send_mail(subject=subject, message=message, from_email=settings.EMAIL_HOST_USER, recipient_list=[user.email], html_message=message)
         user_data = UserSerializer(user, context=self.get_serializer_context()).data
         
-        # userinfo = {
-        #     "id": user_data.get('id'),
-        #     "email": user_data.get('email'),
-        #     "fullname": user_data.get('fullname'),
-        #     "dialCode": user_data.get('dialCode'),
-        #     "phone_no": user_data.get('phone_no'),
-        #     "role": user_data.get('role'),
-        #     "isVerified": user_data.get('isVerified'),
-        #     "matricNo": user_data.get('matricNo') if  user_data.get('matricNo') else "",
-        #     "birthdate": user_data.get('birthdate') if user_data.get('birthdate') else "",
-        #     "gender": user_data.get('gender') if user_data.get('gender') else "",
-        #     "nationality": user_data.get('nationality') if user_data.get('nationality') else ""
-        # }
+        userinfo = {
+            "id": user_data.get('id'),
+            "email": user_data.get('email'),
+            "fullname": user_data.get('fullname'),
+            "dialCode": user_data.get('dialCode'),
+            "phone_no": user_data.get('phone_no'),
+            "role": user_data.get('role'),
+            "isVerified": user_data.get('isVerified'),
+            "matricNo": user_data.get('matricNo') if  user_data.get('matricNo') else "",
+            "birthdate": user_data.get('birthdate') if user_data.get('birthdate') else "",
+            "gender": user_data.get('gender') if user_data.get('gender') else "",
+            "nationality": user_data.get('nationality') if user_data.get('nationality') else ""
+        }
 
         return Response({
-            "user": user_data,
+            "user": userinfo,
             "token": AuthToken.objects.create(user)[1]
         })
     
