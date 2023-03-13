@@ -34,6 +34,9 @@ class DriverConsumer(AsyncWebsocketConsumer):
             return
 
         # Add the user ID to the channel group for drivers
+        await self.channel_layer.group_add(
+            'drivers', self.channel_name
+        )
        
         await self.accept()
 

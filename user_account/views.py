@@ -70,11 +70,14 @@ class RegisterAPI(generics.GenericAPIView):
             serializer.is_valid(raise_exception=True)
             user = serializer.save()
         except serializers.ValidationError as e:
+            errors = e.detail
+            message = str(errors[list(errors.keys())[0]][0])
+            message = "Email already exists." if message == "This field must be unique." else message
             return Response({
                 "success": False,
                 "statusCode": status.HTTP_400_BAD_REQUEST,
                 "error": "Bad Request",
-                "message": str(e.detail),
+                "message": message,
                 "line": sys.exc_info()[-1].tb_lineno
             }, status=status.HTTP_400_BAD_REQUEST)
 
